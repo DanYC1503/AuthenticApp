@@ -1,2 +1,8 @@
-auth-service\tmp
-.env
+# Environment files
+*.env
+
+# Temporary build files
+tmp/
+auth-service/tmp/
+user-service/tmp/
+api-gateway/tmp/
