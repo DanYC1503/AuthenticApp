@@ -10,7 +10,7 @@ type UserLoggedIn struct {
 	PhoneNumber   string    `json:"phone_number"`
 	DateOfBirth   DateOnly  `json:"date_of_birth"`
 	Address       string    `json:"address"`
-	CreateDate    time.Time `json:"create_date"`
+	CreateDate    DateOnly  `json:"create_date"`
 	Username      string    `json:"username"`
 	IsVerified    bool      `json:"is_verified"`
 	LastLogin     time.Time `json:"last_login"`

@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"log"
+	"main/config"
 	"net/http"
 	"os"
 	"time"
@@ -16,10 +17,11 @@ func EnableServer() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using defaults")
 	}
-
+	// Initialize OAuth providers
+	config.InitOAuth()
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "9999"
 	}
 
 	// Create mux and register routes
@@ -29,7 +31,7 @@ func EnableServer() {
 	// Configure and start server
 	server := &http.Server{
 		Addr:         ":" + port,
-		Handler:      mux, 
+		Handler:      mux,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  60 * time.Second,

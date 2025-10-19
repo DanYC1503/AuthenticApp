@@ -64,11 +64,57 @@ CREATE TABLE audit_logs (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     metadata JSONB                             -- optional, flexible for extra info (e.g. device ID)
 );
-CREATE TABLE recovery_tokens (
-    id SERIAL PRIMARY KEY,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    token_hash BYTEA NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    used BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+
+ALTER TABLE users
+ADD COLUMN oauth_provider VARCHAR(50),        -- e.g. 'google', 'facebook'
+ADD COLUMN oauth_id TEXT,                     -- unique provider user ID
+ADD CONSTRAINT unique_oauth UNIQUE (oauth_provider, oauth_id);
+ALTER TABLE users
+ALTER COLUMN password_hash DROP NOT NULL,
+ALTER COLUMN salt DROP NOT NULL;
+
+ALTER TABLE auth_methods
+DROP COLUMN secret_data;
+
+CREATE OR REPLACE FUNCTION create_auth_method_for_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- If OAuth ID is not null, set method_type = 'oauth'
+    IF NEW.oauth_id IS NOT NULL THEN
+        INSERT INTO auth_methods(user_id, method_type, last_used)
+        VALUES (NEW.id, 'oauth', NOW());
+    ELSE
+        -- Otherwise, assume password signup
+        INSERT INTO auth_methods(user_id, method_type, last_used)
+        VALUES (NEW.id, 'password', NOW());
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_create_auth_method
+AFTER INSERT ON users
+FOR EACH ROW
+EXECUTE FUNCTION create_auth_method_for_user();
+
+
+CREATE OR REPLACE FUNCTION update_auth_method_last_login(p_username TEXT)
+RETURNS VOID AS $$
+DECLARE
+    v_user_id UUID;
+BEGIN
+    -- Get the user ID from users table
+    SELECT id INTO v_user_id
+    FROM users
+    WHERE username = p_username;
+
+    -- Only update if user exists
+    IF v_user_id IS NOT NULL THEN
+        UPDATE auth_methods
+        SET last_used = NOW()
+        WHERE user_id = v_user_id;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+

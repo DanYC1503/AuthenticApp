@@ -42,7 +42,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	
+
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		tx, err := db.Begin()
 		if err != nil {
@@ -110,7 +110,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not generate session token", http.StatusInternalServerError)
 		return
 	}
-
+	
 	// Set session cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
@@ -147,18 +147,17 @@ func GetDeleteToken(w http.ResponseWriter, r *http.Request) {
 func SessionTokenVerification(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	isValid, err := repository.SessionTokenVerification(w, r)
-	if err != "" {
-		http.Error(w, "error verifying session token", http.StatusInternalServerError)
+	isValid, username := repository.SessionTokenVerification(w, r)
+
+	if !isValid {
+		http.Error(w, "Invalid or missing session token", http.StatusUnauthorized)
 		return
 	}
 
-	status := "Token valid"
-	if !isValid {
-		status = "Token invalid"
+	resp := map[string]string{
+		"tokenStatus": "valid",
+		"username":    username,
 	}
-
-	resp := map[string]string{"tokenStatus": status}
 	json.NewEncoder(w).Encode(resp)
 }
 

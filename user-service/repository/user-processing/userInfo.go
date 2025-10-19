@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"main/models"
 	"net/http"
 
@@ -28,12 +29,20 @@ func RetrieveUserLoginInfo(w http.ResponseWriter, user models.UserRequestInfo, t
 		&endUser.PhoneNumber,
 		&endUser.Username,
 	)
+
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"user": models.UserLoggedIn{},
-		})
+		if err == sql.ErrNoRows {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return fmt.Errorf("user %s not found", user.Username)
+		}
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return fmt.Errorf("failed to scan user row: %w", err)
 	}
 
-	return nil
+	// Encode and send the user info
+	w.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(map[string]interface{}{
+		"user": endUser,
+	})
+
 }

@@ -13,6 +13,10 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/auth/register", handlers.RegisterUser)
 	mux.HandleFunc("/auth/login", handlers.LoginUser)
 
+	// OAuth Paths
+	mux.HandleFunc("/auth/google/login", handlers.GoogleLogin)
+	mux.HandleFunc("/auth/google/callback", handlers.GoogleCallback)
+
 	//mux.HandleFunc("GET /auth/refresh", handlers.RefreshToken)
 	mux.HandleFunc("/auth/validateToken", handlers.TokenVerification)
 	mux.HandleFunc("/auth/validateUpToken", handlers.UpTokenVerification)

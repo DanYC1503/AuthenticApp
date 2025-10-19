@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"main/middleware/encryption"
 	"net/http"
 
@@ -26,9 +27,19 @@ func AuthenticateUserCredentials(db *sql.DB, username, password string) (bool, s
 	if !ok {
 		return false, "", nil
 	}
+	_, err = db.Exec(`UPDATE users SET last_login = NOW() WHERE username = $1`, username)
+	if err != nil {
+		return false, "", fmt.Errorf("failed to update last_login: %w", err)
+	}
+
+	_, err = db.Exec(`SELECT update_auth_method_last_login($1)`, username)
+	if err != nil {
+		return false, "", fmt.Errorf("failed to update auth_methods.last_used: %w", err)
+	}
 
 	return true, dbUsername, nil
 }
+
 func SessionTokenVerification(w http.ResponseWriter, r *http.Request) (bool, string) {
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
@@ -42,5 +53,6 @@ func SessionTokenVerification(w http.ResponseWriter, r *http.Request) (bool, str
 		http.Error(w, "Invalid or expired session token", http.StatusUnauthorized)
 		return false, ""
 	}
+	fmt.Printf("Session Token Verified")
 	return true, username
 }

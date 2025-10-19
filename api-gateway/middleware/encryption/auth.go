@@ -1,19 +1,24 @@
 package encryption
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 )
 
 // validateSessionToken checks the session token by calling the auth-service endpoint
 func ValidateSessionToken(r *http.Request) bool {
+	fmt.Println("Trying to validate sessionToken for user")
+
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", "http://localhost:9999/auth/validateToken", nil)
 
-	// Pass the headers (Authorization, cookies, etc)
 	req.Header = r.Header
 
+	// Send request to auth-service
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Println("Error contacting auth-service:", err)
 		return false
 	}
 	defer resp.Body.Close()

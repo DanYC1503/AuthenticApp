@@ -48,7 +48,4 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 		return repository.RetrieveUserLoginInfo(w, userInfo, tx)
 	})
 
-	// Success
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("User Info returned successfully"))
 }
