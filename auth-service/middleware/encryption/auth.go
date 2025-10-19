@@ -36,7 +36,6 @@ func IsRetryable(err error) bool {
 		}
 	}
 
-	// For other error types, do custom string matching
 	if strings.Contains(err.Error(), "connection refused") ||
 		strings.Contains(err.Error(), "timeout") {
 		return true

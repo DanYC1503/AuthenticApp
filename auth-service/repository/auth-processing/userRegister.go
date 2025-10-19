@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"main/middleware/encryption"
 	"main/models"
@@ -13,51 +14,59 @@ import (
 
 func InsertUser(tx *sql.Tx, userCreateClient models.UserCreateClient, createDate time.Time) (string, error) {
 	query := `INSERT INTO users (
-        id_number_encrypted, 
-        full_name, 
-        email, 
-        phone_number, 
-        date_of_birth, 
-        address, 
-        create_date, 
-        username, 
-        password_hash,
-        salt, 
-        is_verified, 
-        last_login, 
-        account_status, 
-        role
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id`
+    id_number_encrypted, 
+    full_name, 
+    email, 
+    phone_number, 
+    date_of_birth, 
+    address, 
+    create_date, 
+    username, 
+    password_hash,
+    salt, 
+    is_verified, 
+    last_login, 
+    account_status
+) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id`
 
-	var DateNow = createDate
-	var IsVerified = false
-	var AccountStatus = "active"
-	var Role = "user"
-	salt, erro := encryption.GenerateSalt(16)
-	if erro != nil {
-		log.Fatal("Failed to generate salt:", erro)
+	salt, err := encryption.GenerateSalt(16)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate salt: %w", err)
 	}
-	user_password_hash := encryption.HashPassword(userCreateClient.Password, salt)
-	IDNumberEncrypted := encryption.HashId_Number(string(userCreateClient.IDNumber), salt)
+
+	passwordHash := encryption.HashPassword(userCreateClient.Password, salt)
+	idNumberEncrypted, err := encryption.EncryptIDNumber(userCreateClient.IDNumber)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var lastLogin sql.NullTime // nil at creation
+	var dob sql.NullTime
+	if !userCreateClient.DateOfBirth.ToTime().IsZero() {
+		dob = sql.NullTime{Time: userCreateClient.DateOfBirth.ToTime(), Valid: true}
+	} else {
+		dob = sql.NullTime{Valid: false}
+	}
+
 	var pk string
-	err := tx.QueryRow(query,
-		IDNumberEncrypted,
+	err = tx.QueryRow(query,
+		idNumberEncrypted,
 		userCreateClient.FullName,
 		userCreateClient.Email,
 		userCreateClient.PhoneNumber,
-		userCreateClient.DateOfBirth,
+		dob,
 		userCreateClient.Address,
-		DateNow,
+		createDate,
 		userCreateClient.Username,
-		[]byte(user_password_hash),
+		passwordHash,
 		salt,
-		IsVerified,
-		DateNow,
-		AccountStatus,
-		Role).Scan(&pk)
+		false,     // is_verified
+		lastLogin, // last_login
+		"active",  // account_status
+	).Scan(&pk)
+
 	if err != nil {
-		log.Fatal("Failed to create User DB:", err)
+		return "", fmt.Errorf("failed to create user: %w", err)
 	}
 
-	return pk, err
+	return pk, nil
 }

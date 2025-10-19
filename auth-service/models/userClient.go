@@ -5,7 +5,7 @@ import (
 )
 
 type UserClient struct {
-	IDNumberEncrypted []byte    `json:"id_number_encrypted"` // BYTEA
+	IDNumberEncrypted string    `json:"id_number_encrypted"` // BYTEA
 	FullName          string    `json:"full_name"`
 	Email             string    `json:"email"`
 	PhoneNumber       string    `json:"phone_number,omitempty"`
@@ -20,14 +20,14 @@ type UserClient struct {
 }
 
 type UserCreateClient struct {
-	IDNumber    string    `json:"id_number"` // Will be encrypted before storing
-	FullName    string    `json:"full_name"`
-	Email       string    `json:"email"`
-	Password    string    `json:"password"`
-	PhoneNumber string    `json:"phone_number,omitempty"`
-	DateOfBirth time.Time `json:"date_of_birth,omitempty"`
-	Address     string    `json:"address,omitempty"`
-	Username    string    `json:"username"`
+	IDNumber    string   `json:"id_number"` // Will be encrypted before storing
+	FullName    string   `json:"full_name"`
+	Email       string   `json:"email"`
+	Password    string   `json:"password"`
+	PhoneNumber string   `json:"phone_number,omitempty"`
+	DateOfBirth DateOnly `json:"date_of_birth,omitempty"`
+	Address     string   `json:"address,omitempty"`
+	Username    string   `json:"username"`
 }
 type UserLogin struct {
 	Username string `json:"username"`
@@ -55,7 +55,7 @@ type UserUpdate struct {
 	UsernameNew       string    `json:"username_new"`
 }
 type UserCredentialUpdate struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	PasswordNew       string    `json:"password_new"`
+	Username    string `json:"username"`
+	Password    string `json:"password"`
+	PasswordNew string `json:"password_new"`
 }

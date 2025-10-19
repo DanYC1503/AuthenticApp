@@ -42,6 +42,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
+	
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		tx, err := db.Begin()
 		if err != nil {

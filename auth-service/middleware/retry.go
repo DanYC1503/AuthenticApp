@@ -16,7 +16,7 @@ func TransactionRetry(db *sql.DB, maxRetries int, w http.ResponseWriter, op func
 			continue
 		}
 
-		err = op(tx) // Execute the operation/function passed as parameter
+		err = op(tx) // Execute the function passed as parameter
 
 		if err != nil {
 			tx.Rollback()
