@@ -26,4 +26,6 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/auth/updateUserToken", controllers.RequireValidToken(handlers.GetUpdateToken))
 	mux.HandleFunc("/auth/logout", controllers.RequireValidToken(handlers.LogoutSession))
 
+	
+
 }

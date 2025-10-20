@@ -49,3 +49,20 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	})
 
 }
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
+	const maxRetries = 3
+	db := config.ConnectDB()
+	fmt.Println("Connected to Database")
+	defer db.Close()
+
+	var userInfo models.UserRequestInfo
+	if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	// Pass a function (closure) that receives *tx and calls your repository function
+	middleware.TransactionRetry(db, maxRetries, w, func(tx *sql.Tx) error {
+		return repository.DeleteUser(w, userInfo, tx)
+	})
+
+}

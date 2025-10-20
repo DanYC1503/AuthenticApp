@@ -49,7 +49,7 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate session token
-	sessionToken, expireDate, err := encryption.GenerateSessionToken(user.Email)
+	sessionToken, expireDate, err := encryption.GenerateToken(user.Email, "session")
 	if err != nil {
 		http.Error(w, "Could not generate session token", http.StatusInternalServerError)
 		return

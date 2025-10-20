@@ -5,6 +5,7 @@ import (
 )
 
 type Claims struct {
-	Username string `json:"username"`
+	Username  string `json:"username"`
+	TokenType string `json:"token_type"` // "session", "update", "delete"
 	jwt.RegisteredClaims
 }

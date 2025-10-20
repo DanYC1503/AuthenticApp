@@ -65,6 +65,8 @@ CREATE TABLE audit_logs (
     metadata JSONB                             -- optional, flexible for extra info (e.g. device ID)
 );
 
+
+
 ALTER TABLE users
 ADD COLUMN oauth_provider VARCHAR(50),        -- e.g. 'google', 'facebook'
 ADD COLUMN oauth_id TEXT,                     -- unique provider user ID
@@ -118,3 +120,31 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+CREATE OR REPLACE FUNCTION log_user_action(
+    p_username TEXT,
+    p_action TEXT,
+    p_ip_address TEXT,
+    p_user_agent TEXT,
+    p_metadata TEXT
+)
+RETURNS VOID AS $$
+DECLARE 
+    v_user_id UUID;
+BEGIN
+    -- Find the user's ID
+    SELECT id INTO v_user_id
+    FROM users
+    WHERE username = p_username;
+
+    -- Insert into audit_logs
+    INSERT INTO audit_logs(user_id, action, ip_address, user_agent, metadata)
+    VALUES (v_user_id, p_action, p_ip_address, p_user_agent, p_metadata::jsonb);
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER trg_log_user_registration
+AFTER INSERT ON users
+FOR EACH ROW
+EXECUTE FUNCTION log_user_registration();

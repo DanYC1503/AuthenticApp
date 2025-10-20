@@ -11,8 +11,18 @@ func RequestUpdateAuthToken(w http.ResponseWriter, r *http.Request, user models.
 	db := config.ConnectDB()
 	defer db.Close()
 
+	var exists bool
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE username=$1)", user.Username).Scan(&exists)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return ""
+	}
+	if !exists {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return ""
+	}
 	// Issue short-lived token for update
-	token, _, err := encryption.GenerateActionJWT(user.Username, "update")
+	token, _, err := encryption.GenerateToken(user.Username, "update")
 	if err != nil {
 		http.Error(w, "Could not generate token", http.StatusInternalServerError)
 		return ""

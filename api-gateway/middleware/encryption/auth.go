@@ -56,3 +56,8 @@ func ValidateUpdateToken(r *http.Request) bool {
 
 	return resp.StatusCode == http.StatusOK
 }
+
+type RequestPayload struct {
+	Username string `json:"username"`
+	// add other fields if needed
+}

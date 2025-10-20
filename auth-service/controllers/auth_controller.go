@@ -42,14 +42,20 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-
+	fmt.Printf("In controllers trying to insert user")
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		tx, err := db.Begin()
 		if err != nil {
 			log.Println("Begin failed:", err)
 			continue
 		}
-		pk, err := repository.InsertUser(tx, user, createDate)
+		fmt.Println("Attempting to insert user")
+		errIns := repository.InsertUser(tx, user, createDate)
+		if errIns != nil {
+			tx.Rollback()
+			http.Error(w, "Failed to create user", http.StatusInternalServerError)
+			return
+		}
 
 		if err != nil {
 			tx.Rollback()
@@ -69,7 +75,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log.Println("User created with ID:", pk)
+		w.Header().Set("X-Username", user.Username)
 		w.WriteHeader(http.StatusCreated)
 		break
 	}
@@ -105,17 +111,16 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate session token
-	sessionToken, expireDate, err := encryption.GenerateSessionToken(username)
+	sessionToken, sessionExp, err := encryption.GenerateToken(username, "session")
 	if err != nil {
 		http.Error(w, "Could not generate session token", http.StatusInternalServerError)
 		return
 	}
-	
 	// Set session cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    sessionToken,
-		Expires:  expireDate,
+		Expires:  sessionExp,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   false, // enable in production
@@ -123,10 +128,12 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Respond with session details only
+
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("X-Username", user.Username)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"session_token": sessionToken,
-		"expires":       expireDate.Unix(),
+		"expires":       sessionExp.Unix(),
 	})
 }
 
@@ -141,6 +148,7 @@ func GetDeleteToken(w http.ResponseWriter, r *http.Request) {
 	token := repository.RequestDeleteAuthToken(w, r, user)
 	resp := map[string]string{"deleteAuthToken": token}
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("X-Username", user.Username)
 	json.NewEncoder(w).Encode(resp)
 }
 
@@ -160,20 +168,22 @@ func SessionTokenVerification(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(resp)
 }
-
 func UpdateTokenVerification(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	updateAuthToken := r.Header.Get("X-Update-Auth")
-
-	if !encryption.ValidateToken(updateAuthToken, "updateAuth") {
-		http.Error(w, "Invalid or expired updateAuth token", http.StatusUnauthorized)
+	updateToken := r.Header.Get("X-Update-Auth")
+	if updateToken == "" {
+		http.Error(w, "Missing update token", http.StatusUnauthorized)
 		return
 	}
 
-	// If we reach here, the token is valid
-	status := "UpdateToken Validated"
+	claims, ok := encryption.ValidateToken(updateToken, "update")
+	if !ok {
+		http.Error(w, "Invalid or expired update token", http.StatusUnauthorized)
+		return
+	}
 
+	status := fmt.Sprintf("Update token validated for user: %s", claims.Username)
 	resp := map[string]string{"tokenStatus": status}
 	json.NewEncoder(w).Encode(resp)
 }
@@ -181,16 +191,19 @@ func UpdateTokenVerification(w http.ResponseWriter, r *http.Request) {
 func DeleteTokenVerification(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	deleteAuthToken := r.Header.Get("X-Delete-Auth")
-
-	if !encryption.ValidateToken(deleteAuthToken, "deleteAuth") {
-		http.Error(w, "Invalid or expired deleteAuth token", http.StatusUnauthorized)
+	deleteToken := r.Header.Get("X-Delete-Auth")
+	if deleteToken == "" {
+		http.Error(w, "Missing delete token", http.StatusUnauthorized)
 		return
 	}
 
-	// If we reach here, the token is valid
-	status := "Delete Token Validated"
+	claims, ok := encryption.ValidateToken(deleteToken, "delete")
+	if !ok {
+		http.Error(w, "Invalid or expired delete token", http.StatusUnauthorized)
+		return
+	}
 
+	status := fmt.Sprintf("Delete token validated for user: %s", claims.Username)
 	resp := map[string]string{"tokenStatus": status}
 	json.NewEncoder(w).Encode(resp)
 }
@@ -208,7 +221,6 @@ func RequireValidToken(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 func GetUpdateToken(w http.ResponseWriter, r *http.Request) {
-
 	var user models.UserLogin
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -218,6 +230,7 @@ func GetUpdateToken(w http.ResponseWriter, r *http.Request) {
 	token := repository.RequestUpdateAuthToken(w, r, user)
 	resp := map[string]string{"updateAuthToken": token}
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("X-Username", user.Username)
 	json.NewEncoder(w).Encode(resp)
 }
 

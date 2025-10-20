@@ -2,7 +2,6 @@ package encryption
 
 import (
 	"errors"
-	"fmt"
 	"main/models"
 
 	"os"
@@ -43,7 +42,7 @@ func IsRetryable(err error) bool {
 
 	return false
 }
-func ValidateToken(tokenString string, expectedSubject string) bool {
+func ValidateToken(tokenString string, expectedType string) (*models.Claims, bool) {
 	jwtKey := []byte(os.Getenv("JWT_SECRET"))
 	claims := &models.Claims{}
 
@@ -51,36 +50,13 @@ func ValidateToken(tokenString string, expectedSubject string) bool {
 		return jwtKey, nil
 	})
 	if err != nil || !token.Valid {
-		return false
+		return nil, false
 	}
 
-	return claims.Subject == expectedSubject
-}
-func ValidateSessionToken(tokenString string) (string, error) {
-	jwtKey := []byte(os.Getenv("JWT_SECRET"))
-	claims := &models.Claims{}
-
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
-	})
-	if err != nil || !token.Valid {
-		return "", fmt.Errorf("invalid or expired token")
+	// Check that the token type matches what we expect
+	if claims.TokenType != expectedType {
+		return nil, false
 	}
 
-	if claims.Subject != "session" {
-		return "", fmt.Errorf("invalid token subject")
-	}
-
-	return claims.Username, nil
-}
-
-func ExtractBearerToken(authHeader string) string {
-	if authHeader == "" {
-		return ""
-	}
-	parts := strings.SplitN(authHeader, " ", 2)
-	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-		return ""
-	}
-	return parts[1]
+	return claims, true
 }

@@ -17,6 +17,10 @@ func RegisterRoutes(mux *http.ServeMux) {
 	if userService == "" {
 		userService = "http://localhost:8889"
 	}
+	auditService := os.Getenv("AUDIT_SERVICE_URL")
+	if auditService == "" {
+		auditService = "http://localhost:8890"
+	}
 
 	// Health check (unprotected)
 	mux.HandleFunc("/api/status", func(w http.ResponseWriter, r *http.Request) {

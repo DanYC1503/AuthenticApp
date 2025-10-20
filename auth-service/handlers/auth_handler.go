@@ -4,29 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
-	service "main/controllers"
+	"main/controllers"
 	"main/middleware"
 	"net/http"
 
 	"github.com/markbates/goth/gothic"
 )
-
-func GetDeleteToken(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte("Method not allowed"))
-		return
-	}
-	service.GetDeleteToken(w, r)
-}
-func GetUpdateToken(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte("Method not allowed"))
-		return
-	}
-	service.GetUpdateToken(w, r)
-}
 
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -34,15 +17,33 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Method not allowed"))
 		return
 	}
-	service.CreateUser(w, r)
+	fmt.Printf("Register User reached going to controllers")
+	controllers.CreateUser(w, r)
 }
+func GetDeleteToken(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
+	controllers.GetDeleteToken(w, r)
+}
+func GetUpdateToken(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
+	controllers.GetUpdateToken(w, r)
+}
+
 func LoginUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("Method not allowed"))
 		return
 	}
-	service.LoginUser(w, r)
+	controllers.LoginUser(w, r)
 }
 func Session_logout(w http.ResponseWriter, r *http.Request) {
 	middleware.LogoutCurrentUser(w, r)
@@ -55,23 +56,26 @@ func TokenVerification(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	service.SessionTokenVerification(w, r)
+	controllers.SessionTokenVerification(w, r)
 }
 func UpTokenVerification(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("Method not allowed"))
 		return
 	}
-	service.UpdateTokenVerification(w, r)
+	controllers.UpdateTokenVerification(w, r)
 }
 func DelTokenVerification(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("Method not allowed"))
 		return
 	}
-	service.DeleteTokenVerification(w, r)
+	deleteToken := r.Header.Get("X-Delete-Auth")
+	log.Printf("Auth-controllers received delete token: %s", deleteToken)
+
+	controllers.DeleteTokenVerification(w, r)
 }
 func LogoutSession(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -79,7 +83,7 @@ func LogoutSession(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Method not allowed"))
 		return
 	}
-	service.LogoutSession(w, r)
+	controllers.LogoutSession(w, r)
 }
 
 func GoogleCallback(w http.ResponseWriter, r *http.Request) {
@@ -90,7 +94,7 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	r = r.WithContext(context.WithValue(r.Context(), "provider", "google"))
-	service.GoogleCallback(w, r)
+	controllers.GoogleCallback(w, r)
 }
 func GoogleLogin(w http.ResponseWriter, r *http.Request) {
 	r = r.WithContext(context.WithValue(r.Context(), "provider", "google"))

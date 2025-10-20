@@ -46,13 +46,14 @@ func SessionTokenVerification(w http.ResponseWriter, r *http.Request) (bool, str
 		http.Error(w, "Missing session token", http.StatusUnauthorized)
 		return false, ""
 	}
-
-	//  Validate session token and get username
-	username, err := encryption.ValidateSessionToken(cookie.Value)
-	if err != nil {
+	
+	// Validate the session token and get claims
+	claims, ok := encryption.ValidateToken(cookie.Value, "session")
+	if !ok {
 		http.Error(w, "Invalid or expired session token", http.StatusUnauthorized)
 		return false, ""
 	}
-	fmt.Printf("Session Token Verified")
-	return true, username
+
+	fmt.Printf("Session Token Verified for user: %s\n", claims.Username)
+	return true, claims.Username
 }

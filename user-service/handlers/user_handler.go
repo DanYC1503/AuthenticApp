@@ -22,3 +22,11 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	controllers.UpdateUser(w, r)
 }
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
+	controllers.DeleteUser(w, r)
+}
