@@ -98,7 +98,17 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
+	status, err := repository.VerifyUserAccountStatus(db, user.Username)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	if !status {
+		http.Error(w, "User account disabled", http.StatusForbidden)
+		return
+	}
+	
 	// Authenticate credentials
 	ok, username, err := repository.AuthenticateUserCredentials(db, user.Username, user.Password)
 	if err != nil {
@@ -150,6 +160,32 @@ func GetDeleteToken(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("X-Username", user.Username)
 	json.NewEncoder(w).Encode(resp)
+}
+func GetPasswordToken(w http.ResponseWriter, r *http.Request) {
+	var user models.UserPasswordRetrieval
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	token := repository.RequestPasswordAuthToken(w, r, user)
+
+	// Only send success response if no error was sent
+	if token != "" {
+		resp := map[string]string{"message": token}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(resp)
+	}
+}
+func VerifyPasswordRecoveryToken(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		http.Error(w, "Token missing", http.StatusBadRequest)
+		return
+	}
+	repository.VerifyRecoveryToken(w, token)
+
 }
 
 func SessionTokenVerification(w http.ResponseWriter, r *http.Request) {

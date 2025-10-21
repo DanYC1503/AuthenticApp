@@ -34,3 +34,8 @@ type UserCredentialUpdate struct {
 type UserRequestInfo struct {
 	Username string `json:"username"`
 }
+
+type AdminUserEnableDisable struct {
+	Username       string `json:"username"`
+	ClientUsername string `json:"client_username"`
+}

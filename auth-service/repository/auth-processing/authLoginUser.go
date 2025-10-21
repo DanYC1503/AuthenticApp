@@ -40,13 +40,34 @@ func AuthenticateUserCredentials(db *sql.DB, username, password string) (bool, s
 	return true, dbUsername, nil
 }
 
+func VerifyUserAccountStatus(db *sql.DB, username string) (bool, error) {
+	query := `SELECT account_status FROM users WHERE username = $1`
+
+	var accountStatus string
+	err := db.QueryRow(query, username).Scan(&accountStatus)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, fmt.Errorf("user not found")
+		}
+		return false, err
+	}
+
+	// Return true if account is active
+	if accountStatus == "active" {
+		return true, nil
+	}
+
+	// Return false if account is disabled or any other status
+	return false, nil
+}
+
 func SessionTokenVerification(w http.ResponseWriter, r *http.Request) (bool, string) {
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
 		http.Error(w, "Missing session token", http.StatusUnauthorized)
 		return false, ""
 	}
-	
+
 	// Validate the session token and get claims
 	claims, ok := encryption.ValidateToken(cookie.Value, "session")
 	if !ok {

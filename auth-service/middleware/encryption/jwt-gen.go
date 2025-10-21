@@ -1,6 +1,9 @@
 package encryption
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"main/models"
 	"os"
 	"strconv"
@@ -32,4 +35,15 @@ func GenerateToken(username, tokenType string) (string, time.Time, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jwtKey)
 	return tokenString, expirationTime, err
+}
+func HashToken(token string) string {
+	secret := os.Getenv("HASH_TOKEN_SECRET")
+	if secret == "" {
+		// Fallback for development
+		secret = "fallback-secret-change-in-production"
+	}
+
+	h := hmac.New(sha256.New, []byte(secret))
+	h.Write([]byte(token))
+	return hex.EncodeToString(h.Sum(nil))
 }

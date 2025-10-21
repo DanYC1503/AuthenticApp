@@ -45,3 +45,6 @@ type UserLoggedIn struct {
 	LastLogin     time.Time `json:"last_login"`
 	AccountStatus string    `json:"account_status"`
 }
+type UserPasswordRetrieval struct {
+	Email string `json:"email"`
+}

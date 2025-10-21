@@ -148,3 +148,9 @@ CREATE TRIGGER trg_log_user_registration
 AFTER INSERT ON users
 FOR EACH ROW
 EXECUTE FUNCTION log_user_registration();
+
+
+ALTER TABLE users
+    DROP CONSTRAINT users_account_status_check,
+    ADD CONSTRAINT users_account_status_check
+    CHECK (account_status IN ('active', 'pending', 'disabled'));

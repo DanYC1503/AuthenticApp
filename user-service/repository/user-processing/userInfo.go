@@ -46,3 +46,61 @@ func RetrieveUserLoginInfo(w http.ResponseWriter, user models.UserRequestInfo, t
 	})
 
 }
+func RetrieveUserUsername(w http.ResponseWriter, tx *sql.Tx) error {
+	query := `SELECT username FROM users WHERE user_type = 'client'`
+
+	rows, err := tx.Query(query)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return fmt.Errorf("failed to query users: %w", err)
+	}
+	defer rows.Close()
+
+	var users []string
+
+	for rows.Next() {
+		var username string
+		if err := rows.Scan(&username); err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return fmt.Errorf("failed to scan username: %w", err)
+		}
+		users = append(users, username)
+	}
+
+	if err = rows.Err(); err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return fmt.Errorf("error iterating over rows: %w", err)
+	}
+
+	if len(users) == 0 {
+		http.Error(w, "No clients found", http.StatusNotFound)
+		return nil
+	}
+
+	// Send JSON response
+	w.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(map[string]interface{}{
+		"clients": users,
+	})
+}
+
+func VerifyUserType(db *sql.DB, username string) (bool, error) {
+	query := `SELECT user_type FROM users WHERE username = $1`
+
+	var user_type string
+	err := db.QueryRow(query, username).Scan(&user_type)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, fmt.Errorf("user not found")
+		}
+		return false, err
+	}
+
+	// Return true if account is active
+	if user_type == "admin" {
+		return true, nil
+	}
+
+	// Return false if account is disabled or any other status
+	return false, nil
+}

@@ -83,25 +83,35 @@ func sendAuditEvent(event auditEvent) error {
 
 // detectAction determines the action type based on the path
 func detectAction(path string) string {
-	// Login actions
-	if strings.Contains(path, "/users/login") || strings.Contains(path, "/users/signin") {
+	// Auth actions
+	if strings.Contains(path, "/auth/login") {
 		return "login"
 	}
 
 	// Logout actions
-	if strings.Contains(path, "/users/logout") || strings.Contains(path, "/users/signout") {
-		return "logout"
+	if strings.Contains(path, "/auth/logout") {
+		return "logout-user"
+	}
+	if strings.Contains(path, "/auth/register") {
+		return "user-create"
+	}
+	if strings.Contains(path, "/auth/deleteToken") {
+		return "delete-token-granted"
 	}
 
 	// User management
-	if strings.Contains(path, "/users/create") || strings.Contains(path, "/users/register") {
-		return "user_create"
-	}
+
 	if strings.Contains(path, "/users/delUser") {
 		return "user_delete"
 	}
 	if strings.Contains(path, "/users/update") {
 		return "user_update"
+	}
+	if strings.Contains(path, "/users/disable/user") {
+		return "user_disabled"
+	}
+	if strings.Contains(path, "/users/enable/user") {
+		return "user_enabled"
 	}
 	if strings.Contains(path, "/users/") {
 		return "user_access"

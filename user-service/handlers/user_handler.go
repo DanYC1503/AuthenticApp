@@ -30,3 +30,28 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 	controllers.DeleteUser(w, r)
 }
+func DisableUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
+	controllers.DisableUser(w, r)
+}
+
+func EnableUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
+	controllers.EnableUser(w, r)
+}
+func RetrieveUserUsername(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
+	controllers.RetrieveUserUsername(w, r)
+}

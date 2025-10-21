@@ -13,7 +13,7 @@ func RequestDeleteAuthToken(w http.ResponseWriter, r *http.Request, user models.
 	defer db.Close()
 
 	var exists bool
-	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE username=$1)", user.Username).Scan(&exists)
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email=$1)", user.Username).Scan(&exists)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return ""

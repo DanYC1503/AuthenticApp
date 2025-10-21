@@ -36,7 +36,19 @@ func GetUpdateToken(w http.ResponseWriter, r *http.Request) {
 	}
 	controllers.GetUpdateToken(w, r)
 }
+func GetPasswordToken(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
+	controllers.GetPasswordToken(w, r)
+}
+func AutoVerifyRecoveryToken(w http.ResponseWriter, r *http.Request) {
 
+	// Reuse your existing verification logic
+	controllers.VerifyPasswordRecoveryToken(w, r)
+}
 func LoginUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -77,6 +89,7 @@ func DelTokenVerification(w http.ResponseWriter, r *http.Request) {
 
 	controllers.DeleteTokenVerification(w, r)
 }
+
 func LogoutSession(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
