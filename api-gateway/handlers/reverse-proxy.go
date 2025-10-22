@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	middleware "main/middleware/csrf"
 	"main/middleware/encryption"
 	"net/http"
 	"net/http/httputil"
@@ -51,7 +52,12 @@ func ReverseProxy(target string, prefix string) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
-
+		if !(r.Method == http.MethodGet || r.Method == http.MethodHead || path == "/api/csrf-token") {
+			if !middleware.ValidateCSRFRequest(r) {
+				http.Error(w, "Forbidden: invalid CSRF token", http.StatusForbidden)
+				return
+			}
+		}
 		// Debug: log cookies and headers
 		for _, c := range r.Cookies() {
 			log.Printf("[Proxy] Cookie: %s=%s", c.Name, c.Value)

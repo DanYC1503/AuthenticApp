@@ -14,7 +14,7 @@ import (
 
 	_ "github.com/lib/pq"
 )
-
+//Generate salt for user for passhword encryption
 func GenerateSalt(length int) ([]byte, error) {
 	saltBytes := make([]byte, length)
 	_, err := rand.Read(saltBytes)
@@ -23,6 +23,7 @@ func GenerateSalt(length int) ([]byte, error) {
 	}
 	return saltBytes, nil
 }
+//Hash password through user salt
 func HashPassword(password string, salt []byte) string {
 	hash := sha256.New()
 	hash.Write(salt)
@@ -32,6 +33,7 @@ func HashPassword(password string, salt []byte) string {
 
 	return hex.EncodeToString(hashedBytes)
 }
+//Encyrpt the id number so its not visible through queries
 func HashId_Number(id_number string, salt []byte) string {
 	hash := sha256.New()
 	hash.Write(salt)

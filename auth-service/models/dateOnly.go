@@ -7,6 +7,7 @@ import (
 
 type DateOnly time.Time
 
+//Own date type for trimming the extra info for like birthdays
 func (d *DateOnly) UnmarshalJSON(b []byte) error {
 	s := strings.Trim(string(b), `"`)
 	if s == "" {

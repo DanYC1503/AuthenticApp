@@ -1,0 +1,19 @@
+/* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@keyframes softPulse {
+  0%, 100% { filter: brightness(0.95); }
+  50% { filter: brightness(1.05); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes lavaLamp {
+  0%   { background-position: 0% 50%; }
+  25%  { background-position: 50% 60%; }
+  50%  { background-position: 100% 50%; }
+  75%  { background-position: 50% 40%; }
+  100% { background-position: 0% 50%; }
+}

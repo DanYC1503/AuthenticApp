@@ -16,6 +16,5 @@ func LogoutCurrentUser(w http.ResponseWriter, r *http.Request) bool {
 		SameSite: http.SameSiteStrictMode,
 	})
 
-	// Could add checks here if needed; for now always return 1
 	return true
 }

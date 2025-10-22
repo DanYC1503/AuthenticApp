@@ -5,7 +5,7 @@ import (
 	"net/smtp"
 	"os"
 )
-
+//Mailer with teh env variables to send email with google smtp credentials
 func SendEmail(to, subject, body string) error {
 	from := os.Getenv("SMTP_EMAIL")
 	password := os.Getenv("SMTP_PASSWORD")

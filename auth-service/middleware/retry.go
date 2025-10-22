@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 )
-
+//Reusablle transaction retry for all teh processes wtih 3 attempts
 func TransactionRetry(db *sql.DB, maxRetries int, w http.ResponseWriter, op func(tx *sql.Tx) error) {
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		tx, err := db.Begin()

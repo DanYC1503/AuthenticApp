@@ -2,6 +2,7 @@ package internal
 
 import (
 	"main/handlers"
+	middleware "main/middleware/csrf"
 	"net/http"
 	"os"
 )
@@ -31,5 +32,5 @@ func RegisterRoutes(mux *http.ServeMux) {
 	// Proxy routes
 	mux.Handle("/auth/", handlers.ReverseProxy(authService, "/auth"))
 	mux.Handle("/users/", handlers.ReverseProxy(userService, "/users"))
-
+	mux.HandleFunc("/api/csrf-token", middleware.GetCSRFToken)
 }

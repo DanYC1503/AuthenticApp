@@ -98,7 +98,12 @@ func detectAction(path string) string {
 	if strings.Contains(path, "/auth/deleteToken") {
 		return "delete-token-granted"
 	}
-
+	if strings.Contains(path, "/auth/passwordToken") {
+		return "recover-password-email-token-granted"
+	}
+	if strings.Contains(path, "/auth/VerifyPassToken") {
+		return "verify-grant-password-recovery-token"
+	}
 	// User management
 
 	if strings.Contains(path, "/users/delUser") {
@@ -115,19 +120,6 @@ func detectAction(path string) string {
 	}
 	if strings.Contains(path, "/users/") {
 		return "user_access"
-	}
-
-	// Data operations
-	if strings.Contains(path, "/data/") {
-		return "data_access"
-	}
-	if strings.Contains(path, "/files/") {
-		return "file_access"
-	}
-
-	// Admin operations
-	if strings.Contains(path, "/admin/") {
-		return "admin_access"
 	}
 
 	// Default to generic access

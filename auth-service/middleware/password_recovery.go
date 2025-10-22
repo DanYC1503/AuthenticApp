@@ -5,6 +5,7 @@ import (
 	"os"
 )
 
+// Email constructor with redirect if verified to frontend endpoint to pass through the api, verify and recieve the password token change
 func SendPasswordRecoveryEmail(toEmail, token string) error {
 
 	appURL := os.Getenv("FRONTEND_URL")
@@ -12,7 +13,7 @@ func SendPasswordRecoveryEmail(toEmail, token string) error {
 		return fmt.Errorf("FRONTEND_URL not set in environment")
 	}
 
-	// Build the reset link pointing to your Angular route
+	// Build the reset link pointing to the Angular route
 	resetLink := fmt.Sprintf("%s/recovery/password?token=%s", appURL, token)
 
 	subject := "Password Reset Request"

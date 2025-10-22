@@ -11,6 +11,7 @@ import (
 	"github.com/markbates/goth/gothic"
 )
 
+// ---------------------Basic auth funtions
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -20,6 +21,17 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Register User reached going to controllers")
 	controllers.CreateUser(w, r)
 }
+
+func LoginUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
+	controllers.LoginUser(w, r)
+}
+
+// ----------------------TOKEN RETRIEVAL
 func GetDeleteToken(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -44,23 +56,14 @@ func GetPasswordToken(w http.ResponseWriter, r *http.Request) {
 	}
 	controllers.GetPasswordToken(w, r)
 }
+
+// -------------------TOKEN VERIFICATION
 func AutoVerifyRecoveryToken(w http.ResponseWriter, r *http.Request) {
 
 	// Reuse your existing verification logic
 	controllers.VerifyPasswordRecoveryToken(w, r)
 }
-func LoginUser(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte("Method not allowed"))
-		return
-	}
-	controllers.LoginUser(w, r)
-}
-func Session_logout(w http.ResponseWriter, r *http.Request) {
-	middleware.LogoutCurrentUser(w, r)
 
-}
 func TokenVerification(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -89,7 +92,10 @@ func DelTokenVerification(w http.ResponseWriter, r *http.Request) {
 
 	controllers.DeleteTokenVerification(w, r)
 }
+func Session_logout(w http.ResponseWriter, r *http.Request) {
+	middleware.LogoutCurrentUser(w, r)
 
+}
 func LogoutSession(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -123,6 +129,7 @@ func GoogleLogin(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Headers set by Gothic:", rec.Header())
 }
 
+// Struct to maintain the audit on each request, listening basically
 type responseRecorder struct {
 	http.ResponseWriter
 	headers http.Header
@@ -131,7 +138,7 @@ type responseRecorder struct {
 func (r *responseRecorder) Header() http.Header {
 	return r.headers
 }
-
+//Write header for the required function, this case the audit that needs the headers reconstructed
 func (r *responseRecorder) WriteHeader(statusCode int) {
 	for k, v := range r.headers {
 		r.ResponseWriter.Header()[k] = v

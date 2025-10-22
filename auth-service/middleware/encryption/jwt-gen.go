@@ -36,6 +36,8 @@ func GenerateToken(username, tokenType string) (string, time.Time, error) {
 	tokenString, err := token.SignedString(jwtKey)
 	return tokenString, expirationTime, err
 }
+//Function specific for now to the recovery password, need to hasht eh token to the frontend so when verified it passed 
+//and dehashes in a way to compare with the temp tokens
 func HashToken(token string) string {
 	secret := os.Getenv("HASH_TOKEN_SECRET")
 	if secret == "" {
