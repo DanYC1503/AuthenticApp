@@ -13,29 +13,29 @@ import (
 )
 
 // GenerateJWT for the given username
-func GenerateToken(username, tokenType string) (string, time.Time, error) {
-	expSeconds, err := strconv.Atoi(os.Getenv("JWT_EXPIRATION")) // expiration in seconds
-	jwtKey := []byte(os.Getenv("JWT_SECRET"))
+	func GenerateToken(username, tokenType string) (string, time.Time, error) {
+		expSeconds, err := strconv.Atoi(os.Getenv("JWT_EXPIRATION")) // expiration in seconds
+		jwtKey := []byte(os.Getenv("JWT_SECRET"))
 
-	if err != nil || expSeconds <= 0 {
-		expSeconds = 1800 // fallback: 1 hour
+		if err != nil || expSeconds <= 0 {
+			expSeconds = 1800 // fallback: 1 hour
+		}
+		expirationTime := time.Now().Add(time.Duration(expSeconds) * time.Second)
+
+		claims := &models.Claims{
+			Username:  username,
+			TokenType: tokenType,
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(expirationTime),
+				IssuedAt:  jwt.NewNumericDate(time.Now()),
+				Subject:   tokenType,
+			},
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenString, err := token.SignedString(jwtKey)
+		return tokenString, expirationTime, err
 	}
-	expirationTime := time.Now().Add(time.Duration(expSeconds) * time.Second)
-
-	claims := &models.Claims{
-		Username:  username,
-		TokenType: tokenType,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			Subject:   tokenType,
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
-	return tokenString, expirationTime, err
-}
 //Function specific for now to the recovery password, need to hasht eh token to the frontend so when verified it passed 
 //and dehashes in a way to compare with the temp tokens
 func HashToken(token string) string {

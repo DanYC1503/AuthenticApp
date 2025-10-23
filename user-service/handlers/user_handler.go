@@ -55,3 +55,11 @@ func RetrieveUserUsername(w http.ResponseWriter, r *http.Request) {
 	}
 	controllers.RetrieveUserUsername(w, r)
 }
+func RetrieveUserType(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
+	controllers.ReturnUserType(w, r)
+}

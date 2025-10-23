@@ -11,10 +11,7 @@ import (
 )
 
 func InsertUser(tx *sql.Tx, userCreateClient models.UserCreateClient, createDate time.Time) error {
-	fmt.Println("In repository starting query")
-
-	// Add debug logging
-	fmt.Printf("User data: %+v\n", userCreateClient)
+	fmt.Println("Inserting User")
 
 	query := `INSERT INTO users (
 		id_number_encrypted, 
@@ -34,8 +31,6 @@ func InsertUser(tx *sql.Tx, userCreateClient models.UserCreateClient, createDate
 		oauth_id
 	) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`
 
-	fmt.Printf("Query: %s\n", query)
-
 	// Generate salt and hash password
 	salt, err := encryption.GenerateSalt(16)
 	if err != nil {
@@ -48,7 +43,6 @@ func InsertUser(tx *sql.Tx, userCreateClient models.UserCreateClient, createDate
 	// Encrypt ID number
 	idNumberEncrypted, err := encryption.EncryptIDNumber(userCreateClient.IDNumber)
 	if err != nil {
-		fmt.Printf("Encryption error: %v\n", err)
 		return fmt.Errorf("failed to encrypt ID number: %w", err)
 	}
 	fmt.Printf("ID number encrypted successfully\n")
@@ -61,13 +55,9 @@ func InsertUser(tx *sql.Tx, userCreateClient models.UserCreateClient, createDate
 
 	if !userCreateClient.DateOfBirth.ToTime().IsZero() {
 		dob = sql.NullTime{Time: userCreateClient.DateOfBirth.ToTime(), Valid: true}
-		fmt.Printf("Date of birth: %v\n", dob.Time)
-	} else {
-		fmt.Printf("Date of birth: NULL\n")
 	}
 
 	// Execute insert
-	fmt.Printf("Executing query with %d parameters\n", 15)
 	_, err = tx.Exec(query,
 		idNumberEncrypted,
 		userCreateClient.FullName,
@@ -91,6 +81,5 @@ func InsertUser(tx *sql.Tx, userCreateClient models.UserCreateClient, createDate
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 
-	fmt.Println("User inserted successfully")
 	return nil
 }

@@ -1,0 +1,46 @@
+<section class="bg-[linear-gradient(120deg,_#0ea5e9,_#1e1b4b,_#0f172a,_#0284c7,_#1e3a8a)] bg-[length:300%_300%] min-h-screen flex items-center justify-center animate-[lavaLamp_20s_ease-in-out_infinite]">
+  <div class="bg-gradient-to-r from-purple-300 to-cyan-400 flex flex-col md:flex-row rounded-2xl shadow-lg max-w-4xl p-5 items-center animate-[fadeIn_1s_ease-out]">
+
+    <!-- Form section -->
+    <div class="w-full md:w-1/2 px-8 md:px-16">
+      <h2 class="font-bold text-2xl text-[#002D74]">Registro</h2>
+      <p class="text-sm mt-2 text-[#002D74]">Crea tu cuenta llenando los datos</p>
+
+      <form (ngSubmit)="onRegister()" #registerForm="ngForm" class="flex flex-col gap-4 mt-4">
+
+        <input type="text" name="id_number" [(ngModel)]="id_number" placeholder="Cédula" class="p-2 rounded-xl border border-gray-300" required>
+        <input type="text" name="full_name" [(ngModel)]="full_name" placeholder="Nombre completo" class="p-2 rounded-xl border border-gray-300" required>
+        <input type="email" name="email" [(ngModel)]="email" placeholder="Correo electrónico" class="p-2 rounded-xl border border-gray-300" required>
+
+        <div class="relative">
+          <input [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password" placeholder="Contraseña" class="p-2 rounded-xl border w-full pr-10" required>
+          <svg (click)="showPassword = !showPassword"
+               xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+               [attr.fill]="showPassword ? 'blue' : 'gray'"
+               class="bi bi-eye absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
+               viewBox="0 0 16 16">
+            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+          </svg>
+        </div>
+
+        <input type="text" name="phone_number" [(ngModel)]="phone_number" placeholder="Teléfono" class="p-2 rounded-xl border border-gray-300" required>
+        <input type="date" name="date_of_birth" [(ngModel)]="date_of_birth" placeholder="Fecha de nacimiento" class="p-2 rounded-xl border border-gray-300" required>
+        <input type="text" name="address" [(ngModel)]="address" placeholder="Dirección" class="p-2 rounded-xl border border-gray-300" required>
+        <input type="text" name="username" [(ngModel)]="username" placeholder="Nombre de usuario" class="p-2 rounded-xl border border-gray-300" required>
+
+        <button type="submit" class="bg-[#002D74] text-white py-2 rounded-xl hover:scale-105 hover:shadow-[0_0_15px_#002D74] duration-300">
+          Registrarse
+        </button>
+      </form>
+
+      <p class="mt-4 text-xs text-gray-500">Si ya tienes cuenta, <span class="text-blue-600 cursor-pointer" routerLink="/login">ingresa aquí</span></p>
+    </div>
+
+    <!-- Image section -->
+    <div class="w-full md:w-1/2 hidden md:block">
+      <img class="rounded-2xl w-full h-full object-cover" src="assets/images/sign_up.png" alt="Registro">
+    </div>
+
+  </div>
+</section>

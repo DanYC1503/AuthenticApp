@@ -1,0 +1,143 @@
+<div class="flex min-h-screen bg-gray-50 text-gray-800">
+  <!-- Sidebar -->
+  <aside
+    class="bg-[#0f172a] text-gray-200 w-48 min-h-screen flex flex-col transition-all duration-300"
+    [class.w-20]="isCollapsed"
+  >
+    <!-- Logo / Image -->
+    <div class="flex flex-col items-center mt-4 mb-2">
+      <img
+        src="assets/images/user.png"
+        alt="Profile"
+        class="w-16 h-16 rounded-full mb-2"
+      />
+      <hr class="w-3/4 border-gray-500 mb-3" />
+    </div>
+
+    <!-- Profile Menu -->
+    <div class="px-4">
+      <button
+        class="w-full text-left py-2 px-3 rounded-lg hover:bg-gray-700 flex justify-between items-center"
+        (click)="profileOpen = !profileOpen"
+      >
+        <span class="font-semibold">Perfil</span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4 transition-transform"
+          [class.rotate-180]="profileOpen"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      <!-- Dropdown -->
+      <div *ngIf="profileOpen" class="ml-4 mt-1 flex flex-col gap-1 text-sm text-gray-300">
+        <button class="hover:bg-gray-700 rounded px-2 py-1 text-left" (click)="selectAction('update')">
+          Actualizar Credenciales
+        </button>
+        <button class="hover:bg-gray-700 rounded px-2 py-1 text-left text-red-400" (click)="selectAction('delete')">
+          Eliminar Cuenta
+        </button>
+      </div>
+    </div>
+
+    <hr class="my-4 border-gray-700" />
+
+    <!-- Admin / Conditional Section -->
+    <div *ngIf="showAdminMenu" class="px-4">
+      <p class="text-sm text-gray-400 uppercase mb-2">Administración</p>
+      <a href="#" class="block py-2 px-3 rounded hover:bg-gray-700"
+        >Estado Usuarios</a
+      >
+      <a href="#" class="block py-2 px-3 rounded hover:bg-gray-700"
+        >Listar Usuarios</a
+      >
+      <a href="#" class="block py-2 px-3 rounded hover:bg-gray-700"
+        >Eliminar Usuario</a
+      >
+    </div>
+
+  </aside>
+
+  <!-- Main Content -->
+    <main class="flex-1 p-8">
+      <div *ngIf="selectedAction === 'home'">
+        <h1 class="text-2xl font-bold mb-4">Pagina Inicio</h1>
+
+
+        <div
+        class="mt-6 bg-white p-6 rounded-xl shadow-md border border-gray-200"
+      >
+        <h2 class="text-xl font-semibold mb-2">Información Usuario</h2>
+
+      <div *ngIf="user; else noUser" class="overflow-x-auto">
+        <table class="min-w-full text-left border border-gray-300 rounded-lg shadow-md">
+          <tbody>
+            <tr *ngIf="user.full_name">
+              <td class="px-4 py-2 font-semibold text-gray-700 border-b border-gray-200">Nombre completo</td>
+              <td class="px-4 py-2 text-gray-900 border-b border-gray-200">{{ user.full_name }}</td>
+            </tr>
+
+            <tr *ngIf="user.email">
+              <td class="px-4 py-2 font-semibold text-gray-700 border-b border-gray-200">Correo electrónico</td>
+              <td class="px-4 py-2 text-gray-900 border-b border-gray-200">{{ user.email }}</td>
+            </tr>
+
+            <tr *ngIf="user.phone_number">
+              <td class="px-4 py-2 font-semibold text-gray-700 border-b border-gray-200">Número de teléfono</td>
+              <td class="px-4 py-2 text-gray-900 border-b border-gray-200">{{ user.phone_number }}</td>
+            </tr>
+
+            <tr *ngIf="user.date_of_birth">
+              <td class="px-4 py-2 font-semibold text-gray-700 border-b border-gray-200">Fecha de nacimiento</td>
+              <td class="px-4 py-2 text-gray-900 border-b border-gray-200">{{ user.date_of_birth }}</td>
+            </tr>
+
+            <tr *ngIf="user.address">
+              <td class="px-4 py-2 font-semibold text-gray-700 border-b border-gray-200">Dirección</td>
+              <td class="px-4 py-2 text-gray-900 border-b border-gray-200">{{ user.address }}</td>
+            </tr>
+
+            <tr *ngIf="user.create_date">
+              <td class="px-4 py-2 font-semibold text-gray-700 border-b border-gray-200">Fecha de creación</td>
+              <td class="px-4 py-2 text-gray-900 border-b border-gray-200">{{ user.create_date }}</td>
+            </tr>
+
+            <tr *ngIf="user.last_login">
+              <td class="px-4 py-2 font-semibold text-gray-700 border-b border-gray-200">Último inicio de sesión</td>
+              <td class="px-4 py-2 text-gray-900 border-b border-gray-200">{{ user.last_login | date:'short' }}</td>
+            </tr>
+
+            <tr *ngIf="user.account_status">
+              <td class="px-4 py-2 font-semibold text-gray-700 border-b border-gray-200">Estado de cuenta</td>
+              <td class="px-4 py-2 text-gray-900 border-b border-gray-200 capitalize">{{ user.account_status }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #noUser>
+        <p class="text-gray-500 italic">No se encontró información del usuario.</p>
+      </ng-template>
+
+      </div>
+      </div>
+      <div *ngIf="selectedAction === 'update'">
+      <h2 class="text-xl font-semibold mb-2">Actualizar Credenciales</h2>
+      <!-- Include form or component to update credentials -->
+    </div>
+
+    <!-- Delete Account -->
+    <div *ngIf="selectedAction === 'delete'">
+      <h2 class="text-xl font-semibold mb-2 text-red-500">Eliminar Cuenta</h2>
+      <p>¿Estás seguro que deseas eliminar tu cuenta?</p>
+      <button class="mt-4 bg-red-500 text-white px-4 py-2 rounded">
+        Confirmar Eliminación
+      </button>
+    </div>
+  </main>
+</div>

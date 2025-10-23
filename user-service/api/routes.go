@@ -15,4 +15,5 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/users/enable/user", handlers.EnableUser)
 	mux.HandleFunc("/users/disable/user", handlers.DisableUser)
 	mux.HandleFunc("/users/retrieve/user", handlers.RetrieveUserUsername)
+	mux.HandleFunc("/users/retrieve/type", handlers.RetrieveUserType)
 }

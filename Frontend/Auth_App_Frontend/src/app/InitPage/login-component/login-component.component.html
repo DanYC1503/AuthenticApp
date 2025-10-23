@@ -6,26 +6,32 @@
       <h2 class="font-bold text-2xl text-[#002D74]">Ingresa</h2>
       <p class="text-sm mt-4 text-[#002D74]">Si es miembro, ingrese aqui</p>
 
-      <form action="" class="flex flex-col gap-4 mt-4">
+      <form (ngSubmit)="onLogin()" #loginForm="ngForm" action="" class="flex flex-col gap-4 mt-4">
         <input
           type="text"
-          name="email"
-          placeholder="Email"
+          name="usuario"
+          [(ngModel)]="usuario"
+          placeholder="Usuario"
           class="p-2 mt-8 rounded-xl border border-gray-300"
+          required
         >
 
         <div class="relative">
           <input
-            type="password"
+            [type]="showPassword ? 'text' : 'password'"
             name="password"
-            placeholder="Password"
+            [(ngModel)]="password"
+            placeholder="Contraseña"
             class="p-2 rounded-xl border w-full pr-10"
+            required
           >
+
           <svg
+            (click)="showPassword = !showPassword"
             xmlns="http://www.w3.org/2000/svg"
             width="20"
             height="20"
-            fill="gray"
+            [attr.fill]="showPassword ? 'blue' : 'gray'"
             class="bi bi-eye absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
             viewBox="0 0 16 16"
           >
@@ -34,7 +40,9 @@
           </svg>
         </div>
 
-        <button class="bg-[#002D74] text-white py-2 rounded-xl hover:scale-105 hover:shadow-[0_0_15px_#002D74] duration-300">
+
+        <button type="submit"
+        class="bg-[#002D74] text-white py-2 rounded-xl hover:scale-105 hover:shadow-[0_0_15px_#002D74] duration-300">
           Ingrese
         </button>
       </form>
@@ -62,12 +70,14 @@
       </button>
 
       <div>
-        <p class="mt-5 text-xs border-b border-gray-400 py-4">Olvidaste tu contraseña?</p>
+        <p class="mt-5 text-xs border-b border-gray-400 py-4 cursor-pointer transform transition-transform duration-200 hover:scale-105"
+        routerLink="/passwordRecovery">
+          Olvidaste tu contraseña?</p>
       </div>
 
       <div class="mt-3 text-xs flex justify-between items-center gap-3">
         <p>Si no tienes cuenta. Registrate aqui...</p>
-        <button class="py-2 px-5 bg-white border rounded-xl hover:scale-110 duration-300 ">Registrate</button>
+        <button class="py-2 px-5 bg-white border rounded-xl hover:scale-110 duration-300 " routerLink="/register/user">Registrate</button>
       </div>
     </div>
 
