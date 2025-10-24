@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build: 
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    image: api-gateway-image
+    container_name: api-gateway-container
+    ports:
+      - "8888:8888"
+    environment:
+      - PORT=8888
+      - AUTH_SERVICE_URL=http://auth-service-container:9999
+      - USER_SERVICE_URL=http://user-service-container:8889
+      - AUDIT_SERVICE_URL=http://audit-service-container:8890
+      - CSRF_SECRET=K3J4p9f2Q1w0e8R7t6y5u4i3o2p1a0s9
+      - DATABASE_URL=postgres://admin:admin123@auth-system-db:5432/auth_system?sslmode=disable
+    depends_on:
+      - auth-system-db
+      - auth-service-container
+      - user-service-container
+      - audit-service-container
+    networks:
+      - app-network
+
+  auth-system-db:
+    image: auth-system-database
+    container_name: auth-system-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=auth_system
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin123
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data  # BIND MOUNT - CHANGED
+    networks:
+      - app-network
+
+  auth-service-container:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    image: auth-service-image
+    container_name: auth-service-container
+    ports:
+      - "9999:9999"
+    environment:
+      - PORT=9999
+      - DATABASE_URL=postgres://admin:admin123@auth-system-db:5432/auth_system?sslmode=disable
+    depends_on:
+      - auth-system-db
+    networks:
+      - app-network
+
+  user-service-container:
+    build:
+      context: ./user-service
+    image: user-service-image
+    container_name: user-service-container
+    ports:
+      - "8889:8889"
+    environment:
+      - PORT=8889
+      - DATABASE_URL=postgres://admin:admin123@auth-system-db:5432/auth_system?sslmode=disable
+    depends_on:
+      - auth-system-db
+    networks:
+      - app-network
+
+  audit-service-container:
+    build:
+      context: ./audit-service
+      dockerfile: Dockerfile
+    image: audit-service-image
+    container_name: audit-service-container
+    ports:
+      - "8890:8890"
+    environment:
+      - PORT=8890
+      - DATABASE_URL=postgres://admin:admin123@auth-system-db:5432/auth_system?sslmode=disable
+    depends_on:
+      - auth-system-db
+    networks:
+      - app-network
+
+volumes:
+  auth_db_data:
+
+networks:
+  app-network:
+    driver: bridge

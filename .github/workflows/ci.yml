@@ -1,0 +1,15 @@
+name: CI/CD Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build services
+        run: docker-compose build
+      - name: Start services
+        run: docker-compose up -d
+      - name: Run tests
+        run: docker-compose exec api-gateway go test ./...

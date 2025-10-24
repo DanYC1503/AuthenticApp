@@ -4,15 +4,19 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 )
 
 // validateSessionToken checks the session token by calling the auth-service endpoint
 func ValidateSessionToken(r *http.Request) bool {
 	fmt.Println("Trying to validate sessionToken for user")
+	authService := os.Getenv("AUTH_SERVICE_URL")
+	if authService == "" {
+		authService = "http://localhost:9999" // default fallback
+	}
 
 	client := &http.Client{}
-	req, _ := http.NewRequest("POST", "http://localhost:9999/auth/validateToken", nil)
-
+	req, _ := http.NewRequest("POST", authService+"/auth/validateToken", nil)
 	req.Header = r.Header
 
 	// Send request to auth-service
@@ -27,8 +31,14 @@ func ValidateSessionToken(r *http.Request) bool {
 }
 
 func ValidateDeleteToken(r *http.Request) bool {
+	fmt.Println("Trying to validate DeleteToken for user")
+	authService := os.Getenv("AUTH_SERVICE_URL")
+	if authService == "" {
+		authService = "http://localhost:9999" // default fallback
+	}
+
 	client := &http.Client{}
-	req, _ := http.NewRequest("POST", "http://localhost:9999/auth/validateDelToken", nil)
+	req, _ := http.NewRequest("POST", authService+"/auth/validateDelToken", nil)
 
 	// Pass the headers (Authorization, cookies, etc)
 	req.Header = r.Header
@@ -42,8 +52,14 @@ func ValidateDeleteToken(r *http.Request) bool {
 	return resp.StatusCode == http.StatusOK
 }
 func ValidateUpdateToken(r *http.Request) bool {
+	fmt.Println("Trying to validate UpdateToken for user")
+	authService := os.Getenv("AUTH_SERVICE_URL")
+	if authService == "" {
+		authService = "http://localhost:9999" // default fallback
+	}
+
 	client := &http.Client{}
-	req, _ := http.NewRequest("POST", "http://localhost:9999/auth/validateUpToken", nil)
+	req, _ := http.NewRequest("POST", authService+"/auth/validateUpToken", nil)
 
 	// Pass the headers (Authorization, cookies, etc)
 	req.Header = r.Header

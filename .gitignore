@@ -7,3 +7,13 @@ auth-service/tmp/
 user-service/tmp/
 api-gateway/tmp/
 audit-service/tmp
+
+postgres-data/
+
+.docker/
+
+.env
+*.env.local
+
+# Logs
+*.log
