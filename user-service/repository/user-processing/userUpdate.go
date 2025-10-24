@@ -25,11 +25,6 @@ func UpdateUser(w http.ResponseWriter, user models.UserUpdate, tx *sql.Tx) error
 		args = append(args, user.FullName)
 		argIndex++
 	}
-	if user.Email != "" {
-		setParts = append(setParts, fmt.Sprintf("email = $%d", argIndex))
-		args = append(args, user.Email)
-		argIndex++
-	}
 	if user.PhoneNumber != "" {
 		setParts = append(setParts, fmt.Sprintf("phone_number = $%d", argIndex))
 		args = append(args, user.PhoneNumber)
@@ -37,9 +32,10 @@ func UpdateUser(w http.ResponseWriter, user models.UserUpdate, tx *sql.Tx) error
 	}
 	if !user.DateOfBirth.ToTime().IsZero() {
 		setParts = append(setParts, fmt.Sprintf("date_of_birth = $%d", argIndex))
-		args = append(args, user.DateOfBirth)
+		args = append(args, user.DateOfBirth.ToTime()) // Convert to time.Time
 		argIndex++
 	}
+
 	if user.Address != "" {
 		setParts = append(setParts, fmt.Sprintf("address = $%d", argIndex))
 		args = append(args, user.Address)
@@ -59,11 +55,11 @@ func UpdateUser(w http.ResponseWriter, user models.UserUpdate, tx *sql.Tx) error
 
 	// Build final query
 	query := fmt.Sprintf(
-		`UPDATE users SET %s WHERE username = $%d`,
+		`UPDATE users SET %s WHERE email = $%d`,
 		strings.Join(setParts, ", "),
 		argIndex,
 	)
-	args = append(args, user.Username)
+	args = append(args, user.Email)
 
 	// Execute the query
 	result, err := tx.Exec(query, args...)

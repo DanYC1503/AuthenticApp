@@ -144,7 +144,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetDeleteToken(w http.ResponseWriter, r *http.Request) {
-	var user models.UserLogin
+	var user models.UserPasswordRetrieval
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
@@ -153,7 +153,7 @@ func GetDeleteToken(w http.ResponseWriter, r *http.Request) {
 	token := repository.RequestDeleteAuthToken(w, r, user)
 	resp := map[string]string{"deleteAuthToken": token}
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("X-Username", user.Username)
+	w.Header().Set("X-USER-EMAIL", user.Email)
 	json.NewEncoder(w).Encode(resp)
 }
 
@@ -255,7 +255,7 @@ func RequireValidToken(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 func GetUpdateToken(w http.ResponseWriter, r *http.Request) {
-	var user models.UserLogin
+	var user models.UserPasswordRetrieval
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
@@ -264,7 +264,7 @@ func GetUpdateToken(w http.ResponseWriter, r *http.Request) {
 	token := repository.RequestUpdateAuthToken(w, r, user)
 	resp := map[string]string{"updateAuthToken": token}
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("X-Username", user.Username)
+	w.Header().Set("X-UPDATE-TOKEN", user.Email)
 	json.NewEncoder(w).Encode(resp)
 }
 

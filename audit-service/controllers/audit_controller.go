@@ -1,7 +1,10 @@
 package controllers
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"main/config"
 	"main/models"
@@ -27,8 +30,13 @@ func AuditActionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse request body FIRST
+	bodyBytes, _ := io.ReadAll(r.Body)
+	log.Printf("[Audit] Raw body received: %q", string(bodyBytes))
+	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes)) // Reset body for decoding
+
 	var audit models.AuditLog
 	if err := json.NewDecoder(r.Body).Decode(&audit); err != nil {
+		log.Printf("[Audit] JSON decode error: %v", err)
 		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
 		return
 	}
@@ -92,6 +100,7 @@ func AuditActionHandler(w http.ResponseWriter, r *http.Request) {
 		db.Close()
 
 		// Success - send response
+		fmt.Println("Succesfully logged action")
 		resp := map[string]string{"status": "logged"}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)

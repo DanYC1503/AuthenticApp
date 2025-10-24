@@ -7,12 +7,12 @@ import (
 	"net/http"
 )
 
-func RequestUpdateAuthToken(w http.ResponseWriter, r *http.Request, user models.UserLogin) string {
+func RequestUpdateAuthToken(w http.ResponseWriter, r *http.Request, user models.UserPasswordRetrieval) string {
 	db := config.ConnectDB()
 	defer db.Close()
 
 	var exists bool
-	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE username=$1)", user.Username).Scan(&exists)
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email=$1)", user.Email).Scan(&exists)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return ""
@@ -22,7 +22,7 @@ func RequestUpdateAuthToken(w http.ResponseWriter, r *http.Request, user models.
 		return ""
 	}
 	// Issue short-lived token for update
-	token, _, err := encryption.GenerateToken(user.Username, "update")
+	token, _, err := encryption.GenerateToken(user.Email, "update")
 	if err != nil {
 		http.Error(w, "Could not generate token", http.StatusInternalServerError)
 		return ""

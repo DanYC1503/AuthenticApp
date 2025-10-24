@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	auditlogging "main/middleware/auditLogging"
 	"net/http"
 	"os"
 	"strings"
@@ -16,16 +18,7 @@ var auditClient = &http.Client{
 	Timeout: 5 * time.Second,
 }
 
-var auditQueue = make(chan auditEvent, 1000) // Buffer 1000 events
-
-type auditEvent struct {
-	username string
-	ip       string
-	ua       string
-	method   string
-	path     string
-	statusCode int
-}
+var auditQueue = make(chan auditlogging.AuditEvent, 1000) // Buffer 1000 events
 
 func init() {
 	// Start background worker to process audit events
@@ -48,20 +41,21 @@ func processAuditEvents() {
 	}
 }
 
-func sendAuditEvent(event auditEvent) error {
+func sendAuditEvent(event auditlogging.AuditEvent) error {
 	auditService := os.Getenv("AUDIT_SERVICE_URL")
 	if auditService == "" {
 		auditService = "http://localhost:8890/audit/log"
 	}
 
-	action := detectAction(event.path, event.statusCode)
+	action := detectAction(event.Path, event.StatusCode)
 	payload := map[string]string{
-		"username":   event.username,
+		"username":   event.Username,
 		"action":     action,
-		"ip_address": event.ip,
-		"user_agent": event.ua,
+		"ip_address": event.IP,
+		"user_agent": event.UA,
 		"metadata":   "{}",
 	}
+	fmt.Println(payload)
 
 	body, err := json.Marshal(payload)
 	if err != nil {
@@ -74,15 +68,18 @@ func sendAuditEvent(event auditEvent) error {
 	}
 	defer resp.Body.Close()
 
+	respBody, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("status %d", resp.StatusCode)
+		return fmt.Errorf("status %d: %s", resp.StatusCode, string(respBody))
 	}
 
-	log.Printf("[Audit] Logged %s (%s) → %d", action, event.username, resp.StatusCode)
+	log.Printf("[Audit] Logged %s (%s) → %d", action, event.Username, resp.StatusCode)
 	return nil
 }
 func detectAction(path string, statusCode int) string {
 	path = strings.ToLower(path)
+
+	log.Printf("[Debug] detectAction called with path: %s, statusCode: %d", path, statusCode)
 
 	var baseAction string
 
@@ -124,14 +121,19 @@ func detectAction(path string, statusCode int) string {
 		baseAction = "user_disabled"
 	case strings.Contains(path, "/users/enable/user"):
 		baseAction = "user_enabled"
+	case strings.Contains(path, "/users/audit/logs"):
+		baseAction = "get_user_audit_logs"
+	case strings.Contains(path, "/users/list/users"):
+		baseAction = "list_users"
 	case strings.Contains(path, "/users/"):
 		baseAction = "user_access"
+
 	default:
 		baseAction = "unknown_action"
 	}
 
 	// ==== Add success/failure suffix ====
-	if statusCode >= 200 && statusCode < 300 {
+	if statusCode == 200 && statusCode < 300 {
 		return baseAction + "_success"
 	}
 	return baseAction + "_fail"

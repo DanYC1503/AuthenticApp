@@ -74,7 +74,5 @@ func SessionTokenVerification(w http.ResponseWriter, r *http.Request) (bool, str
 		http.Error(w, "Invalid or expired session token", http.StatusUnauthorized)
 		return false, ""
 	}
-
-	fmt.Printf("Session Token Verified for user: %s\n", claims.Username)
 	return true, claims.Username
 }

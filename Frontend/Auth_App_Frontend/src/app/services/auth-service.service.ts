@@ -2,13 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from 'environments/environment';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import Swal from 'sweetalert2';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthServiceService {
+  private baseUrl = `${environment.API_GATEWAY_URL}auth/`;
   constructor(private http: HttpClient, private router: Router) { }
 
   private showAdminMenuSubject = new BehaviorSubject<boolean>(this.getStoredAdminState());
@@ -71,4 +72,12 @@ export class AuthServiceService {
         }
       });
   }
+  requestUpdateToken(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}updateUserToken`, payload, { withCredentials: true });
+  }
+  requestDeleteToken(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}deleteToken`, payload, { withCredentials: true });
+  }
+
+
 }

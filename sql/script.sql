@@ -154,3 +154,30 @@ ALTER TABLE users
     DROP CONSTRAINT users_account_status_check,
     ADD CONSTRAINT users_account_status_check
     CHECK (account_status IN ('active', 'pending', 'disabled'));
+
+
+
+CREATE OR REPLACE FUNCTION retrieve_user_audits(p_email TEXT)
+RETURNS TABLE(
+    email TEXT,
+    action TEXT,
+    ip_address TEXT,
+    user_agent TEXT,
+    metadata TEXT,
+    "timestamp" TIMESTAMPTZ
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT u.email AS email,
+           a.action,
+           a.ip_address,
+           a.user_agent,
+           a.metadata::TEXT,
+           a.timestamp
+    FROM audit_logs a
+    JOIN users u ON u.id = a.user_id
+    WHERE u.email = p_email
+    ORDER BY a.timestamp DESC;
+END;
+$$ LANGUAGE plpgsql;
+

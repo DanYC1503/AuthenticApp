@@ -1,9 +1,10 @@
 package auditlogging
 
-type auditEvent struct {
-	username string
-	ip       string
-	ua       string
-	method   string
-	path     string
+type AuditEvent struct {
+	Username   string
+	IP         string
+	UA         string
+	Method     string
+	Path       string
+	StatusCode int
 }

@@ -28,8 +28,10 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return repository.UpdateUser(w, user, tx)
 	})
 
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "User updated successfully")
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "User updated successfully",
+	})
 }
 
 func GetUserInfo(w http.ResponseWriter, r *http.Request) {
@@ -69,6 +71,12 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	// Pass a function (closure) that receives *tx and calls your repository function
 	middleware.TransactionRetry(db, maxRetries, w, func(tx *sql.Tx) error {
 		return repository.DeleteUser(w, userInfo, tx)
+	})
+		// Encode and send the deleted user info
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "User deleted successfully",
 	})
 
 }
@@ -112,14 +120,14 @@ func RetrieveUserUsername(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Connected to Database")
 	defer db.Close()
 
-	var userInfo models.UserRequestInfo
-	if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
-		http.Error(w, "Invalid JSON input", http.StatusBadRequest)
-		return
-	}
+	username := r.URL.Query().Get("username")
+    if username == "" {
+        http.Error(w, "Username query parameter is required", http.StatusBadRequest)
+        return
+    }
 
 	// Verify if user is admin before allowing access
-	isAdmin, err := repository.VerifyUserType(db, userInfo.Username)
+	isAdmin, err := repository.VerifyUserType(db, username)
 	if err != nil {
 		http.Error(w, "Internal error while verifying admin", http.StatusInternalServerError)
 		return

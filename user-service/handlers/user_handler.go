@@ -63,3 +63,19 @@ func RetrieveUserType(w http.ResponseWriter, r *http.Request) {
 	}
 	controllers.ReturnUserType(w, r)
 }
+func GetUserAuditActions(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
+	controllers.GetUserAuditActions(w, r)
+}
+func RetrieveUsers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
+	controllers.RetriveUsers(w, r)
+}

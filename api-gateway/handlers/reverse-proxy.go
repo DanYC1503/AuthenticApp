@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	auditlogging "main/middleware/auditLogging"
 	middleware "main/middleware/csrf"
 	"main/middleware/encryption"
 	"net/http"
@@ -84,6 +85,24 @@ func ReverseProxy(target string, prefix string) http.HandlerFunc {
 				}
 			}
 		}
+		if strings.HasPrefix(path, "/auth/deleteToken") {
+			if !encryption.ValidateSessionToken(r) {
+				http.Error(w, "Unauthorized: invalid session token", http.StatusUnauthorized)
+				return
+			}
+		}
+		if strings.HasPrefix(path, "/auth/updateUserToken") {
+			if !encryption.ValidateSessionToken(r) {
+				http.Error(w, "Unauthorized: invalid session token", http.StatusUnauthorized)
+				return
+			}
+		}
+		if strings.HasPrefix(path, "/auth/logout") {
+			if !encryption.ValidateSessionToken(r) {
+				http.Error(w, "Unauthorized: invalid session token", http.StatusUnauthorized)
+				return
+			}
+		}
 
 		// --- Copy body for both proxy and audit logging ---
 		bodyBytes, err := io.ReadAll(r.Body)
@@ -101,15 +120,12 @@ func ReverseProxy(target string, prefix string) http.HandlerFunc {
 		}
 
 		proxy.ServeHTTP(rec, r)
-
+		statusCode := rec.statusCode
 		// Only audit successful requests (2xx status codes)
-		if rec.statusCode >= 200 && rec.statusCode < 300 {
-			LogAuditAction(r, path, bodyBytes)
-		}
+		LogAuditAction(r, path, bodyBytes, statusCode)
 	}
 }
-
-func LogAuditAction(r *http.Request, path string, bodyBytes []byte) {
+func LogAuditAction(r *http.Request, path string, bodyBytes []byte, statusCode int) {
 	ip := r.Header.Get("X-Forwarded-For")
 	if ip == "" {
 		ip = "unknown"
@@ -127,14 +143,15 @@ func LogAuditAction(r *http.Request, path string, bodyBytes []byte) {
 		}
 	}
 
-	// Non-blocking send to queue
+	// Non-blocking send to queue WITH status code
 	select {
-	case auditQueue <- auditEvent{
-		username: username,
-		ip:       ip,
-		ua:       ua,
-		method:   r.Method,
-		path:     path,
+	case auditQueue <- auditlogging.AuditEvent{
+		Username:   username,
+		IP:         ip,
+		UA:         ua,
+		Method:     r.Method,
+		Path:       path,
+		StatusCode: statusCode, // This is the key fix!
 	}:
 		// Successfully queued
 	default:

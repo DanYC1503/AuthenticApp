@@ -8,12 +8,12 @@ import (
 	"net/http"
 )
 
-func RequestDeleteAuthToken(w http.ResponseWriter, r *http.Request, user models.UserLogin) string {
+func RequestDeleteAuthToken(w http.ResponseWriter, r *http.Request, user models.UserPasswordRetrieval) string {
 	db := config.ConnectDB()
 	defer db.Close()
 
 	var exists bool
-	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email=$1)", user.Username).Scan(&exists)
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email=$1)", user.Email).Scan(&exists)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return ""
@@ -24,7 +24,7 @@ func RequestDeleteAuthToken(w http.ResponseWriter, r *http.Request, user models.
 	}
 
 	// Issue short-lived delete token
-	token, _, err := encryption.GenerateToken(user.Username, "delete")
+	token, _, err := encryption.GenerateToken(user.Email, "delete")
 	if err != nil {
 		http.Error(w, "Could not generate token", http.StatusInternalServerError)
 		return ""

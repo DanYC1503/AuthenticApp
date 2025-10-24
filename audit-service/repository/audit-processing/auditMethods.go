@@ -2,6 +2,7 @@ package auditprocessing
 
 import (
 	"database/sql"
+	"fmt"
 	"main/models"
 
 	_ "github.com/lib/pq"
@@ -18,6 +19,6 @@ func AuditAction(tx *sql.Tx, audit models.AuditLog) error {
 		audit.UserAgent,
 		audit.Metadata,
 	)
-
+	fmt.Println("Audit registered")
 	return err
 }

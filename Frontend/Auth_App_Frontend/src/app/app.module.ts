@@ -14,6 +14,8 @@ import { UsernameInterceptor } from './interceptors/username.interceptor';
 import { LoginComponentComponent } from './InitPage/login-component/login-component.component';
 import { RegistrarUsuarioComponent } from './InitPage/registrar-usuario/registrar-usuario.component';
 import { UpdateUserPageComponent } from './HomePage/update-user-page/update-user-page.component';
+import { DeleteUserPageComponent } from './HomePage/delete-user-page/delete-user-page.component';
+import { ListUsersComponent } from './HomePage/list-users/list-users.component';
 
 
 
@@ -25,7 +27,9 @@ import { UpdateUserPageComponent } from './HomePage/update-user-page/update-user
     AdminPageComponent,
     RecoverPasswordComponent,
     RegistrarUsuarioComponent,
-    UpdateUserPageComponent
+    UpdateUserPageComponent,
+    DeleteUserPageComponent,
+    ListUsersComponent
 
   ],
   imports: [

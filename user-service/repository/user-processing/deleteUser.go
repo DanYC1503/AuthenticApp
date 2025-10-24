@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"main/models"
 	"net/http"
@@ -23,13 +22,6 @@ func DeleteUser(w http.ResponseWriter, user models.UserRequestInfo, tx *sql.Tx) 
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return fmt.Errorf("failed to delete user: %w", err)
 	}
-
-	// Encode and send the deleted user info
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
-		"deleted_user": deletedUsername,
-	})
 
 	return nil
 }

@@ -1,0 +1,66 @@
+<div class="max-w-lg sm:max-w-full mx-auto bg-white p-4 sm:p-6 rounded-xl shadow-md border border-gray-200">
+  <h2 class="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 text-red-500">Eliminar Cuenta</h2>
+  <p class="text-xs sm:text-sm text-gray-700">¿Estás seguro que deseas eliminar tu cuenta?</p>
+
+  <button
+    (click)="showConfirmBox = true"
+    class="mt-3 sm:mt-4 w-full sm:w-auto px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm bg-red-500 text-white rounded hover:bg-red-600 transition"
+  >
+    Eliminar
+  </button>
+</div>
+
+<div
+  *ngIf="showConfirmBox"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+>
+  <div class="bg-white rounded-xl p-6 w-96 shadow-lg">
+    <h3 class="text-lg font-semibold mb-3">Confirma tu correo electrónico</h3>
+    <p class="text-sm text-gray-600 mb-4">
+      Ingresa tu correo para confirmar la eliminación de tu cuenta.
+    </p>
+
+    <input
+      type="email"
+      [(ngModel)]="confirmEmail"
+      placeholder="Ej. tuemail@outlook.com"
+      class="w-full border p-2 rounded-lg mb-4 focus:ring focus:ring-red-300"
+    />
+
+    <div class="flex justify-end gap-2">
+      <button
+        (click)="showConfirmBox = false"
+        class="px-3 py-2 text-sm rounded-lg bg-gray-200 hover:bg-gray-300"
+      >
+        Cancelar
+      </button>
+      <button
+        (click)="requestDelete({ email: confirmEmail })"
+        [disabled]="loading || !confirmEmail"
+        class="px-3 py-2 text-sm rounded-lg bg-red-500 text-white hover:bg-red-600"
+      >
+        Confirmar
+      </button>
+    </div>
+  </div>
+</div>
+<!-- Success Popup -->
+<div
+  *ngIf="successPopup"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-0"
+>
+  <div class="bg-white rounded-xl p-4 sm:p-6 w-full max-w-xs sm:max-w-md shadow-lg">
+    <h3 class="text-base sm:text-lg font-semibold mb-2 sm:mb-3">¡Cuenta eliminada!</h3>
+    <p class="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
+      Tu cuenta se eliminó correctamente.
+    </p>
+    <div class="flex justify-end">
+      <button
+        (click)="closeDeleteSuccessPopup()"
+        class="px-3 py-1.5 sm:px-4 sm:py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-xs sm:text-sm"
+      >
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>

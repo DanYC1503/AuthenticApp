@@ -33,7 +33,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 
 // ----------------------TOKEN RETRIEVAL
 func GetDeleteToken(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("Method not allowed"))
 		return
@@ -41,7 +41,7 @@ func GetDeleteToken(w http.ResponseWriter, r *http.Request) {
 	controllers.GetDeleteToken(w, r)
 }
 func GetUpdateToken(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("Method not allowed"))
 		return

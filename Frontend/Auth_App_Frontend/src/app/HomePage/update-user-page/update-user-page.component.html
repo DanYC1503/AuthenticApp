@@ -1,1 +1,131 @@
-<p>update-user-page works!</p>
+<div class="max-w-lg mx-auto bg-white p-4 sm:p-6 rounded-xl shadow-md border border-gray-200">
+  <h2 class="text-lg sm:text-[14px] font-semibold mb-3 sm:mb-4 text-gray-800">Actualiza tus datos</h2>
+
+  <form (ngSubmit)="confirmUpdate()" class="max-w-lg sm:max-w-full mx-auto bg-white p-4 sm:p-6 rounded-xl shadow-md border border-gray-200">
+    <!-- Nombre completo -->
+    <div>
+      <label for="full_name" class="block text-[0.6rem] sm:text-sm font-medium text-gray-600">Nombre completo</label>
+      <input
+        id="full_name"
+        type="text"
+        [(ngModel)]="full_name"
+        name="full_name"
+        class="w-full mt-1 p-1.5 sm:p-2 border rounded-lg text-[0.6rem] sm:text-sm focus:ring focus:ring-blue-300"
+        placeholder="Ej. Peter Michael Parker"
+      />
+    </div>
+
+    <!-- Correo -->
+    <div>
+      <label for="email" class="block text-[0.6rem] sm:text-sm font-medium text-gray-600">Correo electrónico</label>
+      <input
+        id="email"
+        type="email"
+        [(ngModel)]="email"
+        name="email"
+        class="w-full mt-1 p-1.5 sm:p-2 border rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed text-[0.6rem] sm:text-sm"
+        placeholder="Ej. peter@outlook.com"
+        disabled
+      />
+    </div>
+
+    <!-- Número de teléfono -->
+    <div>
+      <label for="phone_number" class="block text-[0.6rem] sm:text-sm font-medium text-gray-600">Número de teléfono</label>
+      <input
+        id="phone_number"
+        type="text"
+        [(ngModel)]="phone_number"
+        name="phone_number"
+        class="w-full mt-1 p-1.5 sm:p-2 border rounded-lg text-[0.6rem] sm:text-sm focus:ring focus:ring-blue-300"
+        placeholder="Ej. +593 987654321"
+      />
+    </div>
+
+    <!-- Fecha de nacimiento -->
+    <div>
+      <label for="date_of_birth" class="block text-[0.6rem] sm:text-sm font-medium text-gray-600">Fecha de nacimiento</label>
+      <input
+        id="date_of_birth"
+        type="date"
+        [(ngModel)]="date_of_birth"
+        name="date_of_birth"
+        class="w-full mt-1 p-1.5 sm:p-2 border rounded-lg text-[0.6rem] sm:text-sm focus:ring focus:ring-blue-300"
+      />
+    </div>
+
+    <!-- Dirección -->
+    <div>
+      <label for="address" class="block text-[0.6rem] sm:text-sm font-medium text-gray-600">Dirección</label>
+      <input
+        id="address"
+        type="text"
+        [(ngModel)]="address"
+        name="address"
+        class="w-full mt-1 p-1.5 sm:p-2 border rounded-lg text-[0.6rem] sm:text-sm focus:ring focus:ring-blue-300"
+        placeholder="Ej. Calle Principal 123, Cuenca"
+      />
+    </div>
+
+    <!-- Submit -->
+    <button
+      type="submit"
+      [disabled]="loading"
+      class="w-full py-1.5 sm:py-2 bg-blue-600 text-[0.7rem] sm:text-sm text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+    >
+      {{ loading ? 'Actualizando...' : 'Actualizar' }}
+    </button>
+  </form>
+
+  <p *ngIf="message" class="mt-2 sm:mt-4 text-center text-[0.6rem] sm:text-sm text-gray-700">{{ message }}</p>
+</div>
+
+<!-- Confirm Email Modal -->
+<div
+  *ngIf="showConfirmBox"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+>
+  <div class="bg-white rounded-xl p-6 w-96 shadow-lg">
+    <h3 class="text-lg font-semibold mb-3">Confirma tu correo electrónico</h3>
+    <p class="text-sm text-gray-600 mb-4">
+      Ingresa tu correo para confirmar la actualización de credenciales.
+    </p>
+
+    <input
+      type="email"
+      [(ngModel)]="confirmEmail"
+      placeholder="Ej. tuemail@outlook.com"
+      class="w-full border p-2 rounded-lg mb-4 focus:ring focus:ring-blue-300"
+    />
+
+    <div class="flex justify-end gap-2">
+      <button
+        (click)="showConfirmBox = false"
+        class="px-3 py-2 text-sm rounded-lg bg-gray-200 hover:bg-gray-300"
+      >
+        Cancelar
+      </button>
+      <button
+        (click)="requestTokenUpdate({ email: confirmEmail })"
+        [disabled]="loading || !confirmEmail"
+        class="px-3 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+      >
+        Confirmar
+      </button>
+    </div>
+  </div>
+</div>
+<div *ngIf="successPopup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-xl p-6 w-96 shadow-lg">
+    <h3 class="text-lg font-semibold mb-3">¡Actualización exitosa!</h3>
+    <p class="text-sm text-gray-600 mb-4">Tu información se actualizó correctamente.</p>
+    <div class="flex justify-end">
+      <button
+        (click)="closeSuccessPopup()"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+      >
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>
