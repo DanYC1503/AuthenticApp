@@ -1,55 +1,51 @@
-Here’s your fixed and cleaned-up `README.md` version:
+# AuthenticApp - Sistema de Autenticación Segura
+
+Un **sistema de autenticación basado en microservicios** con un frontend en **Angular**, desarrollado con **Go** y **PostgreSQL**.
 
 ---
 
-# AuthenticApp - Secure Authentication System
+## 🚀 Inicio Rápido
 
-A **microservices-based authentication system** with an Angular frontend, built with **Go** and **PostgreSQL**.
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
+### Prerrequisitos
 
 * Docker
 * Docker Compose
 
-### Local Development
+### Desarrollo Local
 
-1. Clone this repository
-2. Run:
+1. Clona este repositorio
+2. Ejecuta:
 
    ```bash
    docker-compose up -d --build
    ```
-3. Access:
+3. Accede a:
 
    * Frontend → [http://localhost:4200](http://localhost:4200)
    * API Gateway → [http://localhost:8888](http://localhost:8888)
 
 ---
 
-## 🧩 Services
+## 🧩 Servicios
 
-| Service           | Port | Description                                     |
-| ----------------- | ---- | ----------------------------------------------- |
-| **API Gateway**   | 8888 | Routes requests, handles CORS & CSRF protection |
-| **Auth Service**  | 9999 | JWT authentication & user management            |
-| **User Service**  | 8889 | User data operations                            |
-| **Audit Service** | 8890 | Activity logging                                |
-| **PostgreSQL**    | 5432 | Data storage                                    |
-
----
-
-## 👤 Default Admin
-
-* **Username:** `admin123`
-* **Email:** `admin@gmail.com`
+| Servicio          | Puerto | Descripción                                       |
+| ----------------- | ------ | ------------------------------------------------- |
+| **API Gateway**   | 8888   | Enruta solicitudes, maneja CORS y protección CSRF |
+| **Auth Service**  | 9999   | Autenticación JWT y gestión de usuarios           |
+| **User Service**  | 8889   | Operaciones sobre datos de usuario                |
+| **Audit Service** | 8890   | Registro de actividades                           |
+| **PostgreSQL**    | 5432   | Almacenamiento de datos                           |
 
 ---
 
-## 🏗 Architecture
+## 👤 Administrador Predeterminado
+
+* **Usuario:** `admin123`
+* **Correo:** `admin@gmail.com`
+
+---
+
+## 🏗 Arquitectura
 
 ```
 Angular Frontend → API Gateway → Auth Service / User Service / Audit Service → PostgreSQL
@@ -57,9 +53,9 @@ Angular Frontend → API Gateway → Auth Service / User Service / Audit Service
 
 ---
 
-## 🔧 Deployment
+## 🔧 Despliegue
 
-### Production
+### Producción
 
 ```bash
 docker-compose -f docker-compose.prod.yml up -d
@@ -67,4 +63,29 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ---
 
-Would you like me to include a small diagram (ASCII or image-based) of the architecture flow? It could make the README look more professional.
+### Architecture.md
+
+```markdown
+# Arquitectura del Sistema
+
+## Stack Tecnológico
+- **Frontend**: Angular con Tailwind CSS  
+- **Backend**: Microservicios en Go  
+- **API Gateway**: Go con Gorilla Mux  
+- **Base de Datos**: PostgreSQL con claves primarias UUID  
+- **Autenticación**: Tokens JWT con protección CSRF  
+- **Contenerización**: Docker y Docker Compose  
+
+## Seguridad
+- Hashing de contraseñas con sal  
+- Autenticación basada en tokens JWT  
+- Protección CSRF  
+- Registro de auditorías para todas las acciones  
+- Validación de entradas y prevención de inyecciones SQL  
+
+## Decisiones de Escalabilidad
+- Arquitectura de microservicios para escalar de forma independiente  
+- API Gateway para enrutamiento centralizado  
+- Autenticación sin estado (stateless)  
+- Despliegue contenerizado con Docker  
+```
