@@ -2,7 +2,10 @@ version: '3.8'
 
 services:
   api-gateway:
-    image: dangyan03/authapp:api-gateway
+    build: 
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    image: api-gateway-image
     container_name: api-gateway-container
     ports:
       - "8888:8888"
@@ -22,8 +25,10 @@ services:
       - app-network
 
   auth-system-db:
-    
-    image: dangyan03/authapp:postgres-init
+    build:
+      context: ./sql
+      dockerfile: Dockerfile
+    image: auth-system-database
     container_name: auth-system-db
     ports:
       - "5432:5432"
@@ -37,7 +42,10 @@ services:
       - app-network
 
   auth-service-container:
-    image: dangyan03/authapp:auth-service
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    image: auth-service-image
     container_name: auth-service-container
     ports:
       - "9999:9999"
@@ -50,7 +58,10 @@ services:
       - app-network
 
   user-service-container:
-    image: dangyan03/authapp:user-service
+    build:
+      context: ./user-service
+    image: user-service-image
+    container_name: user-service-container
     ports:
       - "8889:8889"
     environment:
@@ -62,7 +73,10 @@ services:
       - app-network
 
   audit-service-container:
-    image: dangyan03/authapp:audit-service
+    build:
+      context: ./audit-service
+      dockerfile: Dockerfile
+    image: audit-service-image
     container_name: audit-service-container
     ports:
       - "8890:8890"
@@ -74,7 +88,9 @@ services:
     networks:
       - app-network
   frontend:
-    image: dangyan03/authapp:frontend
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
     container_name: angular-frontend
     ports:
       - "4200:80"

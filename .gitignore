@@ -17,3 +17,5 @@ postgres-data/
 
 # Logs
 *.log
+
+.docker-compose-copy
