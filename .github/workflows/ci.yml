@@ -5,11 +5,80 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: admin123
+          POSTGRES_DB: auth_system
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v3
       
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
+        
+      - name: Create environment files from secrets
+        run: |
+          # API Gateway .env
+          cat << EOF > api-gateway/.env
+          PORT=8888
+          AUTH_SERVICE_URL=http://auth-service:9999
+          USER_SERVICE_URL=http://user-service:8889
+          AUDIT_SERVICE_URL=http://audit-service:8890
+          CSRF_SECRET=${{ secrets.CSRF_SECRET }}
+          EOF
+
+          # Auth Service .env
+          cat << EOF > auth-service/.env
+          PORT=9999
+          DB_HOST=auth-system-db
+          DB_PORT=5432
+          DB_USER=admin
+          DB_PASS=admin123
+          DB_NAME=auth_system
+          DATABASE_URL=postgres://admin:admin123@auth-system-db:5432/auth_system?sslmode=disable
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_EXPIRATION=3600
+          IDNUMBER_SECRET_KEY=${{ secrets.IDNUMBER_SECRET_KEY }}
+          HASH_TOKEN_SECRET=${{ secrets.HASH_TOKEN_SECRET }}
+          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          SMTP_EMAIL=${{ secrets.SMTP_EMAIL }}
+          SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}
+          FRONTEND_URL=http://localhost:4200
+          EOF
+
+          # User Service .env
+          cat << EOF > user-service/.env
+          PORT=8889
+          DB_HOST=auth-system-db
+          DB_PORT=5432
+          DB_USER=admin
+          DB_PASS=admin123
+          DB_NAME=auth_system
+          DATABASE_URL=postgres://admin:admin123@auth-system-db:5432/auth_system?sslmode=disable
+          IDNUMBER_SECRET_KEY=${{ secrets.IDNUMBER_SECRET_KEY }}
+          EOF
+
+          # Audit Service .env
+          cat << EOF > audit-service/.env
+          PORT=8890
+          AUDIT_SERVICE_URL=http://audit-service:8890
+          DB_HOST=auth-system-db
+          DB_PORT=5432
+          DB_USER=admin
+          DB_PASS=admin123
+          DB_NAME=auth_system
+          DATABASE_URL=postgres://admin:admin123@auth-system-db:5432/auth_system?sslmode=disable
+          EOF
         
       - name: Build services
         run: docker compose build
@@ -18,7 +87,7 @@ jobs:
         run: docker compose up -d
         
       - name: Wait for services to be ready
-        run: sleep 10
+        run: sleep 30
         
       - name: Run tests
         run: docker compose exec -T api-gateway go test ./...
