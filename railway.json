@@ -1,0 +1,10 @@
+{
+  "postgres": {
+    "initScripts": [
+      {
+        "name": "init_database.sql", 
+        "url": "https://raw.githubusercontent.com/DanYC1503/AuthenticApp/main/sql/01_schema.sql"
+      }
+    ]
+  }
+}

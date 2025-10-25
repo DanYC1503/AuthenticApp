@@ -2,105 +2,59 @@ version: '3.8'
 
 services:
   api-gateway:
-    build: 
-      context: ./api-gateway
-      dockerfile: Dockerfile
-    image: api-gateway-image
-    container_name: api-gateway-container
+    image: dangyan03/authapp:gateway
     ports:
-      - "8888:8888"
+      - "${PORT:-8888}:8888"
     environment:
       - PORT=8888
       - AUTH_SERVICE_URL=http://auth-service-container:9999
       - USER_SERVICE_URL=http://user-service-container:8889
       - AUDIT_SERVICE_URL=http://audit-service-container:8890
-      - CSRF_SECRET=K3J4p9f2Q1w0e8R7t6y5u4i3o2p1a0s9
-      - DATABASE_URL=postgres://admin:admin123@auth-system-db:5432/auth_system?sslmode=disable
+      - CSRF_SECRET=${CSRF_SECRET}
+      # Remove DATABASE_URL - only services that need DB
     depends_on:
-      - auth-system-db
       - auth-service-container
       - user-service-container
       - audit-service-container
     networks:
       - app-network
 
-  auth-system-db:
-    build:
-      context: ./sql
-      dockerfile: Dockerfile
-    image: auth-system-database
-    container_name: auth-system-db
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_DB=auth_system
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=admin123
-    volumes:
-      - auth_db_data:/var/lib/postgresql/data   # <-- named volume here
-    networks:
-      - app-network
-
   auth-service-container:
-    build:
-      context: ./auth-service
-      dockerfile: Dockerfile
-    image: auth-service-image
-    container_name: auth-service-container
-    ports:
-      - "9999:9999"
+    image: dangyan03/authapp:auth
     environment:
       - PORT=9999
-      - DATABASE_URL=postgres://admin:admin123@auth-system-db:5432/auth_system?sslmode=disable
-    depends_on:
-      - auth-system-db
+      - DATABASE_URL=${DATABASE_URL}  # Railway provides this
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-3600}
+      - IDNUMBER_SECRET_KEY=${IDNUMBER_SECRET_KEY}
+      - HASH_TOKEN_SECRET=${HASH_TOKEN_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - SMTP_EMAIL=${SMTP_EMAIL}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - FRONTEND_URL=${FRONTEND_URL}
     networks:
       - app-network
 
   user-service-container:
-    build:
-      context: ./user-service
-    image: user-service-image
-    container_name: user-service-container
-    ports:
-      - "8889:8889"
+    image: dangyan03/authapp:user
     environment:
       - PORT=8889
-      - DATABASE_URL=postgres://admin:admin123@auth-system-db:5432/auth_system?sslmode=disable
-    depends_on:
-      - auth-system-db
+      - DATABASE_URL=${DATABASE_URL}
+      - IDNUMBER_SECRET_KEY=${IDNUMBER_SECRET_KEY}
     networks:
       - app-network
 
   audit-service-container:
-    build:
-      context: ./audit-service
-      dockerfile: Dockerfile
-    image: audit-service-image
-    container_name: audit-service-container
-    ports:
-      - "8890:8890"
+    image: dangyan03/authapp:audit
     environment:
       - PORT=8890
-      - DATABASE_URL=postgres://admin:admin123@auth-system-db:5432/auth_system?sslmode=disable
-    depends_on:
-      - auth-system-db
+      - DATABASE_URL=${DATABASE_URL}
     networks:
       - app-network
-  frontend:
-    build:
-      context: ./Frontend
-      dockerfile: Dockerfile
-    container_name: angular-frontend
-    ports:
-      - "4200:80"
-    depends_on:
-      - api-gateway
-    networks:
-      - app-network
-volumes:
-  auth_db_data:
 
 networks:
   app-network:
     driver: bridge
+
+# REMOVE volumes section entirely
