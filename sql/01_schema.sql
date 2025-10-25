@@ -28,13 +28,6 @@ CREATE TABLE users (
     user_type character varying(20) DEFAULT 'client'::character varying NOT NULL,
     CONSTRAINT users_account_status_check CHECK (((account_status)::text = ANY ((ARRAY['active'::character varying, 'pending'::character varying, 'disabled'::character varying])::text[])))
 );
-CREATE TABLE auth_methods (
-    id integer NOT NULL,
-    user_id uuid,
-    method_type character varying(50) NOT NULL,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    last_used timestamp without time zone
-);
 
 CREATE TABLE audit_logs (
     id bigint NOT NULL,
@@ -54,25 +47,6 @@ CREATE TABLE recovery_tokens (
     used boolean DEFAULT false,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
 );
-
-CREATE FUNCTION create_auth_method_for_user() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-    -- If OAuth ID is not null, set method_type = 'oauth'
-    IF NEW.oauth_id IS NOT NULL THEN
-        INSERT INTO auth_methods(user_id, method_type, last_used)
-        VALUES (NEW.id, 'oauth', NOW());
-    ELSE
-        -- Otherwise, assume password signup
-        INSERT INTO auth_methods(user_id, method_type, last_used)
-        VALUES (NEW.id, 'password', NOW());
-    END IF;
-
-    RETURN NEW;
-END;
-$$;
-
 
 --
 -- Name: log_user_action(text, text, text, text, text); Type: FUNCTION; Schema: public; Owner: -
@@ -202,26 +176,6 @@ $$;
 -- Name: update_auth_method_last_login(text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.update_auth_method_last_login(p_username text) RETURNS void
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-    v_user_id UUID;
-BEGIN
-    -- Get the user ID from users table
-    SELECT id INTO v_user_id
-    FROM users
-    WHERE username = p_username;
-
-    -- Only update if user exists
-    IF v_user_id IS NOT NULL THEN
-        UPDATE auth_methods
-        SET last_used = NOW()
-        WHERE user_id = v_user_id;
-    END IF;
-END;
-$$;
-
 
 SET default_tablespace = '';
 
@@ -244,13 +198,7 @@ CREATE SEQUENCE public.audit_logs_id_seq
     NO MAXVALUE
     CACHE 1;
 
-CREATE SEQUENCE public.auth_methods_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+
 
 CREATE SEQUENCE public.recovery_tokens_id_seq
     AS integer
@@ -267,14 +215,6 @@ ALTER TABLE ONLY public.audit_logs
 
 
 --
--- Name: auth_methods auth_methods_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_methods
-    ADD CONSTRAINT auth_methods_pkey PRIMARY KEY (id);
-
-
---
 -- Name: recovery_tokens recovery_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -285,6 +225,58 @@ ALTER TABLE ONLY public.recovery_tokens
 --
 -- Name: users unique_oauth; Type: CONSTRAINT; Schema: public; Owner: -
 --
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT unique_oauth UNIQUE (oauth_provider, oauth_id);
+
+
+--
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
+-- Name: users users_phone_number_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_phone_number_key UNIQUE (phone_number);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_username_key UNIQUE (username);
+
+--
+-- Name: audit_logs audit_logs_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audit_logs
+    ADD CONSTRAINT audit_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE SET NULL;
+
+
+--
+-- Name: recovery_tokens recovery_tokens_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.recovery_tokens
+    ADD CONSTRAINT recovery_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+INSERT INTO users (id, id_number_encrypted,full_name,email,phone_number,date_of_birth,address,username,password_hash,salt,user_type,oauth_id) VALUES (gen_random_uuid(),'\x4b387a32432f544243526d6a2f625a487538534e4c4762324e795271424955666e466248626e45657a6e466a6a6d2b4a5277633d','Administrative Coordinator','admin@gmail.com','0970010020','2003-01-01','Cuenca, Ecuador','admin123','\x61346163326234396537343139333633666632393338323138363239373961383633383563346331396537336638366262363031323464613962663832343531','\xfcb34d8cee32b88da8726079d888c571','admin', NULL)
 
 
 

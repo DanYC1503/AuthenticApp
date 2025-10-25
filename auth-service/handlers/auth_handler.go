@@ -113,7 +113,7 @@ func ResetPassword(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Method not allowed"))
 		return
 	}
-	controllers.ResetPassword(w,r)
+	controllers.ResetPassword(w, r)
 }
 func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	log.Println("GoogleCallback hit")
@@ -128,15 +128,11 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 func GoogleLogin(w http.ResponseWriter, r *http.Request) {
 	r = r.WithContext(context.WithValue(r.Context(), "provider", "google"))
 
-	// Print cookies sent in the request
+	// Optional: log incoming cookies
 	fmt.Println("Incoming cookies:", r.Cookies())
 
-	// Capture the response writer to inspect headers set by Gothic
-	rec := &responseRecorder{ResponseWriter: w, headers: http.Header{}}
-	gothic.BeginAuthHandler(rec, r)
-
-	// Print headers set by Gothic (including Set-Cookie)
-	fmt.Println("Headers set by Gothic:", rec.Header())
+	// Call Gothic directly with the real ResponseWriter
+	gothic.BeginAuthHandler(w, r)
 }
 
 // Struct to maintain the audit on each request, listening basically

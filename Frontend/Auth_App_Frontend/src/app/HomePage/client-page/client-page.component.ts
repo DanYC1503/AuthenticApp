@@ -18,26 +18,46 @@ export class ClientPageComponent implements OnInit {
   constructor(private userService: UserService, private authService: AuthServiceService, private router: Router) {}
 
   ngOnInit(): void {
-  // Subscribe to the admin menu state reactively
+  const queryParams = new URLSearchParams(window.location.search);
+  const usernameParam = queryParams.get('username');
+  const emailParam = queryParams.get('email');
+  const userTypeParam = queryParams.get('userType');
+
+  // If OAuth redirect, save info to localStorage
+  if (usernameParam) {
+    localStorage.setItem('USERNAME', usernameParam);
+    localStorage.setItem('EMAIL', emailParam || '');
+    localStorage.setItem('USER_TYPE', userTypeParam || '');
+    // Optionally clear query params from URL
+    window.history.replaceState({}, document.title, '/ClientDashboard');
+  }
+
+  // Determine username to fetch from backend
+  const storedUsername = localStorage.getItem('USERNAME');
+
+  if (storedUsername) {
+    this.userService.getUserInfo(storedUsername).subscribe({
+      next: (res) => {
+        this.user = res.user;
+        console.log('User info loaded:', this.user);
+        localStorage.setItem('EMAIL', this.user.email);
+        // Set user type for admin menu: prefer param from OAuth if exists
+        const type = userTypeParam || this.user.user_type || localStorage.getItem('USER_TYPE');
+        if (type) {
+          this.authService.setShowAdminMenu(type === 'admin');
+        }
+      },
+      error: (err) => console.error('Error fetching user info:', err)
+    });
+  }
+
+  // Subscribe reactively to admin menu state
   this.authService.showAdminMenu$.subscribe(state => {
     this.showAdminMenu = state;
   });
-
-  const username = localStorage.getItem('USERNAME');
-  if (!username) return;
-
-  this.userService.getUserInfo(username).subscribe({
-    next: (res) => {
-      this.user = res.user;
-      console.log('User info loaded:', this.user);
-      localStorage.setItem('EMAIL', this.user.email);
-      if (this.user.user_type) {
-        this.authService.setShowAdminMenu(this.user.user_type === 'admin');
-      }
-    },
-    error: (err) => console.error('Error fetching user info:', err)
-  });
 }
+
+
 selectAction(action: 'home' | 'update' | 'delete' | 'listUsers') {
   this.selectedAction = action;
 

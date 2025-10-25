@@ -54,7 +54,8 @@
         <hr class="border-gray-400">
       </div>
 
-      <button class="bg-white border py-2 w-full rounded-xl mt-5 flex justify-center items-center text-sm hover:scale-105 duration-300">
+      <button class="bg-white border py-2 w-full rounded-xl mt-5 flex justify-center items-center text-sm hover:scale-105 duration-300" (click)="loginWithGoogle()" >
+
         <svg
           class="mr-3"
           xmlns="http://www.w3.org/2000/svg"
@@ -71,7 +72,7 @@
       </button>
 
       <div>
-        <p class="mt-5 text-xs border-b border-gray-400 py-4 cursor-pointer transform transition-transform duration-200 hover:scale-105"
+        <p class="mt-5 text-xs border-b border-gray-400 py-4 cursor-pointer transform transition-transform duration-200 hover:scale-105 text-blue-700"
         routerLink="/passwordRecovery">
           Olvidaste tu contraseña?</p>
       </div>

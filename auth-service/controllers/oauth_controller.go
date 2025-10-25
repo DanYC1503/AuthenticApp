@@ -1,12 +1,13 @@
 package controllers
 
 import (
-	"encoding/json"
+	"fmt"
 	"log"
 	"main/config"
 	"main/middleware/encryption"
 	repository "main/repository/auth-processing"
 	"net/http"
+	"net/url"
 
 	"github.com/markbates/goth/gothic"
 )
@@ -16,10 +17,11 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	// Complete Google OAuth
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
+		log.Printf("OAuth failed in CompleteUserAuth: %v", err)
 		http.Error(w, "OAuth failed: "+err.Error(), http.StatusUnauthorized)
 		return
 	}
-
+	log.Printf("OAuth successful for user: %s (%s)", user.Name, user.Email)
 	db := config.ConnectDB()
 	defer db.Close()
 
@@ -31,7 +33,7 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	defer tx.Rollback()
 
 	// Upsert user info (insert if new, update if existing)
-	userID, err := repository.UpsertOAuthUser(tx, user)
+	err = repository.UpsertOAuthUser(tx, user)
 	if err != nil {
 		http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -42,11 +44,16 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("OAuth user processed, ID:", userID)
-	err = repository.UpdateAuthMethodLastUsed(db, userID, "oauth")
+
+	dbAfter := config.ConnectDB()
+	defer dbAfter.Close()
+
+	txAfter, err := dbAfter.Begin()
 	if err != nil {
-		log.Println("Warning: failed to update auth_methods.last_used:", err)
+		http.Error(w, "Database transaction failed", http.StatusInternalServerError)
+		return
 	}
+	defer txAfter.Rollback()
 
 	// Generate session token
 	sessionToken, expireDate, err := encryption.GenerateToken(user.Email, "session")
@@ -55,6 +62,28 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check user type
+	userType, err := repository.ReturnUserType(txAfter, user.Email)
+	if err != nil {
+		userType = "client" // fallback default
+	}
+
+	// Check user active status
+	active, err := repository.ReturnUserStatus(txAfter, user.Email)
+	if err != nil {
+		http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if !active {
+		log.Printf("User account is not active: %s", user.Email)
+		http.Error(w, "User account is not active", http.StatusForbidden)
+		return
+	}
+
+	// Ccleanly end the transaction
+	if err := txAfter.Commit(); err != nil {
+		log.Printf("Warning: failed to commit read-only tx: %v", err)
+	}
 	// Set cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
@@ -65,12 +94,11 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		Secure:   false,
 		SameSite: http.SameSiteStrictMode,
 	})
-
-	// Instead of redirect, respond like your normal login
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"session_token": sessionToken,
-		"expires":       expireDate.Unix(),
-		"user_email":    user.Email,
-	})
+	frontendURL := fmt.Sprintf(
+		"http://localhost:4200/ClientDashboard?username=%s&email=%s&userType=%s",
+		url.QueryEscape(user.Email),
+		url.QueryEscape(user.Email),
+		url.QueryEscape(userType),
+	)
+	http.Redirect(w, r, frontendURL, http.StatusTemporaryRedirect)
 }

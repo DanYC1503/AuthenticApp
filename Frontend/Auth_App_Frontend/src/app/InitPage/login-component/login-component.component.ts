@@ -47,6 +47,7 @@ export class LoginComponentComponent implements OnInit {
       }
     });
   }
+
   onLogin() {
     const body = {
       username: this.usuario,
@@ -62,7 +63,6 @@ export class LoginComponentComponent implements OnInit {
         // The backend sets the cookie via Set-Cookie header,
         // the browser will automatically store it (thanks to withCredentials).
         localStorage.setItem('USERNAME', this.usuario);
-
         if (res.session_token) {
           localStorage.setItem('SESSION_TOKEN', res.session_token);
           localStorage.setItem('SESSION_EXPIRES', res.expires.toString());
@@ -77,6 +77,10 @@ export class LoginComponentComponent implements OnInit {
         alert('Invalid credentials or session error');
       }
     });
+  }
+  loginWithGoogle(): void {
+    const backendUrl = `${environment.API_GATEWAY_URL}auth/google/login`;
+    window.location.href = backendUrl; // Redirect to backend for OAuth
   }
   getUserType() {
     const username = localStorage.getItem('USERNAME');
@@ -105,6 +109,4 @@ export class LoginComponentComponent implements OnInit {
       }
     });
   }
-
-
 }

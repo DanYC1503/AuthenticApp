@@ -6,6 +6,7 @@ import { AdminPageComponent } from './HomePage/admin-page/admin-page.component';
 import { RecoverPasswordComponent } from './InitPage/recover-password/recover-password.component';
 import { RegistrarUsuarioComponent } from './InitPage/registrar-usuario/registrar-usuario.component';
 import { UpdateUserPageComponent } from './HomePage/update-user-page/update-user-page.component';
+import { OauthSuccessComponent } from './oauth-success/oauth-success.component';
 
 
 const routes: Routes = [
@@ -16,6 +17,7 @@ const routes: Routes = [
   { path: 'passwordRecovery', component: RecoverPasswordComponent },
   { path: 'register/user', component: RegistrarUsuarioComponent },
   { path: 'update/User', component: UpdateUserPageComponent },
+  { path: 'oauth-success', component: OauthSuccessComponent },
 ];
 
 @NgModule({

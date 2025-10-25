@@ -7,50 +7,64 @@ import (
 	"github.com/markbates/goth"
 )
 
-func UpsertOAuthUser(tx *sql.Tx, googleUser goth.User) (string, error) {
-	query := `
-	INSERT INTO users (full_name, email, username, is_verified, create_date, account_status)
-	VALUES ($1, $2, $3, true, NOW(), 'active')
-	ON CONFLICT (email)
-	DO UPDATE SET last_login = NOW()
-	RETURNING id
-	`
+func UpsertOAuthUser(tx *sql.Tx, googleUser goth.User) error {
+	userQuery := `
+    INSERT INTO users (full_name, email, username, oauth_provider, oauth_id, is_verified, create_date, account_status)
+    VALUES ($1, $2, $3, $4, $5, true, NOW(), 'active')
+    ON CONFLICT (email)
+    DO UPDATE SET 
+        last_login = NOW(),
+        oauth_provider = EXCLUDED.oauth_provider,
+        oauth_id = EXCLUDED.oauth_id
+    RETURNING id
+    `
+
+	// Use email as username to ensure consistency
+	username := googleUser.Email
 
 	var userID string
 	err := tx.QueryRow(
-		query,
+		userQuery,
 		googleUser.Name,
 		googleUser.Email,
-		googleUser.NickName, // fallback for username
+		username,
+		"google",          // oauth_provider
+		googleUser.UserID, // oauth_id
 	).Scan(&userID)
 
 	if err != nil {
-		return "", fmt.Errorf("failed to upsert oauth user: %w", err)
-	}
-
-	return userID, nil
-}
-
-func UpdateAuthMethodLastUsed(db *sql.DB, userID string, methodType string) error {
-	query := `
-		UPDATE auth_methods
-		SET last_used = NOW()
-		WHERE user_id = $1 AND method_type = $2
-	`
-
-	res, err := db.Exec(query, userID, methodType)
-	if err != nil {
-		return fmt.Errorf("failed to update last_used: %w", err)
-	}
-
-	rowsAffected, err := res.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to check rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
-		return fmt.Errorf("no auth_method found for user_id=%s and method_type=%s", userID, methodType)
+		return fmt.Errorf("failed to upsert oauth user: %w", err)
 	}
 
 	return nil
+}
+
+func ReturnUserType(tx *sql.Tx, email string) (string, error) {
+	query := `SELECT user_type FROM users WHERE email = $1`
+
+	var userType string
+	err := tx.QueryRow(query, email).Scan(&userType)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", fmt.Errorf("user not found")
+		}
+		return "", fmt.Errorf("failed to query user_type: %w", err)
+	}
+
+	return userType, nil
+}
+func ReturnUserStatus(tx *sql.Tx, email string) (bool, error) {
+	query := `SELECT account_status FROM users WHERE email = $1`
+
+	var accountStatus string
+	err := tx.QueryRow(query, email).Scan(&accountStatus)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// User doesn't exist yet: treat as inactive for now
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to query account_status: %w", err)
+	}
+
+	return accountStatus == "active", nil
 }

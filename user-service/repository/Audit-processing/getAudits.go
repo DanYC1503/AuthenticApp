@@ -33,21 +33,33 @@ func GetUsers(db *sql.DB, email string) ([]models.UserAdminRetrieval, error) {
 	var users []models.UserAdminRetrieval
 	for rows.Next() {
 		var u models.UserAdminRetrieval
+		var phoneNumber, dateOfBirth, address sql.NullString
+		var createDate sql.NullString
+		var accountStatus sql.NullString
+
 		if err := rows.Scan(
 			&u.Username,
 			&u.FullName,
 			&u.Email,
-			&u.PhoneNumber,
-			&u.DateOfBirth,
-			&u.Address,
-			&u.CreateDate,
-			&u.AccountStatus,
+			&phoneNumber,
+			&dateOfBirth,
+			&address,
+			&createDate,
+			&accountStatus,
 			&u.OAuthProvider,
 			&u.OAuthID,
 			&u.UserType,
 		); err != nil {
 			return nil, err
 		}
+
+		// Convert nullable fields to strings safely
+		u.PhoneNumber = phoneNumber.String
+		u.DateOfBirth = dateOfBirth.String
+		u.Address = address.String
+		u.CreateDate = createDate.String
+		u.AccountStatus = accountStatus.String
+
 		users = append(users, u)
 	}
 

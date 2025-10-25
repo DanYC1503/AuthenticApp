@@ -16,6 +16,7 @@ import { RegistrarUsuarioComponent } from './InitPage/registrar-usuario/registra
 import { UpdateUserPageComponent } from './HomePage/update-user-page/update-user-page.component';
 import { DeleteUserPageComponent } from './HomePage/delete-user-page/delete-user-page.component';
 import { ListUsersComponent } from './HomePage/list-users/list-users.component';
+import { OauthSuccessComponent } from './oauth-success/oauth-success.component';
 
 
 
@@ -29,7 +30,8 @@ import { ListUsersComponent } from './HomePage/list-users/list-users.component';
     RegistrarUsuarioComponent,
     UpdateUserPageComponent,
     DeleteUserPageComponent,
-    ListUsersComponent
+    ListUsersComponent,
+    OauthSuccessComponent
 
   ],
   imports: [

@@ -72,6 +72,7 @@ export class AuthServiceService {
         }
       });
   }
+
   requestUpdateToken(payload: any): Observable<any> {
     return this.http.post(`${this.baseUrl}updateUserToken`, payload, { withCredentials: true });
   }

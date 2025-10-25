@@ -33,10 +33,13 @@ func InitOAuth() {
 
 	// Configure session store
 	store := sessions.NewCookieStore([]byte(sessionKey))
-	store.Options.Path = "/"
-	store.Options.HttpOnly = true
-	store.Options.SameSite = http.SameSiteNoneMode
-	store.Options.Secure = false
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   86400 * 30, // 30 days
+		HttpOnly: true,
+		Secure:   false,                // false for localhost, true in production
+		SameSite: http.SameSiteLaxMode, // Consistent with your app
+	}
 
 	gothic.Store = store
 
@@ -45,8 +48,9 @@ func InitOAuth() {
 		google.New(
 			clientID,
 			clientSecret,
-			"http://localhost:9999/auth/google/callback",
+			"http://localhost:9999/auth/google/callback", // browser-accessible
 			"email", "profile",
 		),
 	)
+
 }

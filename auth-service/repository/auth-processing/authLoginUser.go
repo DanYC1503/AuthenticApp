@@ -32,11 +32,6 @@ func AuthenticateUserCredentials(db *sql.DB, username, password string) (bool, s
 		return false, "", fmt.Errorf("failed to update last_login: %w", err)
 	}
 
-	_, err = db.Exec(`SELECT update_auth_method_last_login($1)`, username)
-	if err != nil {
-		return false, "", fmt.Errorf("failed to update auth_methods.last_used: %w", err)
-	}
-
 	return true, dbUsername, nil
 }
 
