@@ -58,7 +58,7 @@ Angular Frontend → API Gateway → Auth Service / User Service / Audit Service
 ### Producción
 
 ```bash
-docker-compose -f docker-compose.prod.yml up -d
+docker-compose up -d 
 ```
 
 ---
