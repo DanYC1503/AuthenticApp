@@ -64,21 +64,22 @@ docker-compose -f docker-compose.prod.yml up -d
 ---
 
 # Arquitectura del Sistema
-![Diagrama de Arquitectura](./docs/images/architecture-diagram.png)
+<img src="./docs/images/DiagramaDeFlujo.png" alt="Diagrama de Arquitectura" width="500" />
+
 ## Stack Tecnológico
-- **Frontend**: Angular con Tailwind CSS  
-- **Backend**: Microservicios en Go  
-- **API Gateway**: Go con Gorilla Mux  
-- **Base de Datos**: PostgreSQL con claves primarias UUID  
-- **Autenticación**: 
+- __Frontend__: Angular con Tailwind CSS  
+- __Backend__: Microservicios en Go  
+- __API Gateway__: Go con Gorilla Mux  
+- __Base de Datos__: PostgreSQL con claves primarias UUID  
+- __Autenticación__: 
   - Tokens JWT con protección CSRF
   - OAuth 2.0 / OpenID Connect para proveedores externos
-- **Contenerización**: Docker y Docker Compose  
+- __Contenerización__: Docker y Docker Compose  
 
 ## Seguridad
 - Hashing de contraseñas con sal  
 - Autenticación basada en tokens JWT  
-- OAuth 2.0 para integración con proveedores externos (Google, GitHub, etc.)
+- OAuth 2.0 para integración con proveedores externos (Google)
 - Protección CSRF  
 - Registro de auditorías para todas las acciones  
 - Validación de entradas y prevención de inyecciones SQL  
@@ -90,10 +91,49 @@ docker-compose -f docker-compose.prod.yml up -d
 - Despliegue contenerizado con Docker  
 
 ## Flujo de Autenticación OAuth
-1. Inicio con OAuth: Usuario selecciona proveedor OAuth (Google/GitHub)
-2. Redirección: Frontend redirige al endpoint de autorización del proveedor
-3. Autorización: Usuario autoriza la aplicación en el proveedor
-4. Callback: Proveedor redirige de vuelta con código de autorización
-5. Intercambio de Token: Backend intercambia código por token de acceso
-6. Creación de Usuario: Sistema crea/actualiza usuario local con datos OAuth
-7. JWT Generation: Backend genera JWT para sesión local
+
+### Flujo Principal de Login
+1. __Inicio con OAuth:__ Usuario selecciona "Login con Google/GitHub" en el frontend de Angular
+2. __Redirección:__ Frontend redirige al usuario al endpoint de autorización del proveedor OAuth con `client_id`, `redirect_uri`, y `scope`
+3. __Autorización:__ Usuario ingresa credenciales y autoriza los permisos solicitados en la página del proveedor (Google)
+4. __Callback:__ Proveedor OAuth redirige de vuelta a nuestra aplicación con un `código de autorización` en la URL
+5. __Intercambio de Token:__ El API Gateway recibe el código y lo envía al Auth Service, que lo intercambia por un `access_token` del proveedor
+6. __Creación de Usuario:__ Auth Service obtiene el perfil del usuario del proveedor y crea/actualiza el usuario local en la base de datos
+7. __JWT Generation:__ Auth Service genera un JWT interno para la sesión del usuario y lo retorna al frontend
+
+### Verificación de Sesión
+```mermaid
+graph LR
+    A[Frontend] --> B[API Gateway]
+    B --> C{Verificar Token}
+    C --> D[Auth Service]
+    D --> B
+    B --> F[Microservicios]
+```
+
+- __API Gateway__ intercepta todas las requests protegidas
+- __Redirige al Auth Service__ para validar el JWT en cada request
+- __Auth Service__ verifica la firma, expiración y estado del token
+- Si el token es válido, el request continúa a los microservicios correspondientes
+
+
+### Logout y Eliminación de Sesión
+```mermaid
+graph LR
+    A[Logout Request] --> B[API Gateway]
+    B --> C[Auth Service]
+    C --> D[Invalidar/Eliminar Tokens]
+    D --> C
+    C --> E[Limpiar Cookies]
+    E --> C
+```
+
+- __Frontend__ llama al endpoint de logout via API Gateway
+- __Auth Service__ invalida tokens (JWT)
+- __Elimina las cookies/session storage__ del frontend
+
+### Ventajas de esta Arquitectura:
+- __Centralización:__ Todas las verificaciones pasan por Auth Service
+- __Seguridad:__ Tokens invalidables y verificación centralizada
+- __Escalabilidad:__ Microservicios no necesitan lógica de autenticación
+- __Mantenibilidad:__ Cambios en autenticación afectan solo un servicio
