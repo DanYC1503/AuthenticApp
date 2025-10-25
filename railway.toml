@@ -1,12 +1,12 @@
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "./api-gateway/Dockerfile"
 
 [deploy]
-startCommand = "./main"
+startCommand = "docker compose up"
 
-[[services]]
-name = "api-gateway"
-[[services.ports]]
-port = 8888
-http = "/"
+[environments.production]
+[environments.production.postgres]
+version = "13"
+
+[environments.production.postgres.initScripts]
+"01-schema.sql" = "https://raw.githubusercontent.com/DanYC1503/AuthenticApp/main/sql/01_schema.sql"
