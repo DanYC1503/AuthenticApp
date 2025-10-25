@@ -14,7 +14,8 @@ func SendPasswordRecoveryEmail(toEmail, token string) error {
 	}
 
 	// Build the reset link pointing to the Angular route
-	resetLink := fmt.Sprintf("%s/recovery/password?token=%s", appURL, token)
+	resetLink := fmt.Sprintf("%s/passwordRecovery?token=%s", appURL, token)
+
 
 	subject := "Password Reset Request"
 	body := fmt.Sprintf(`Hello,

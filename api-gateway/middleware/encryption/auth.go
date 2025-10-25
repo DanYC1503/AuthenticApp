@@ -94,3 +94,24 @@ func CorsMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+func ValidatePasswordToken(r *http.Request) bool {
+	fmt.Println("Trying to validate PasswordToken for user")
+	authService := os.Getenv("AUTH_SERVICE_URL")
+	if authService == "" {
+		authService = "http://localhost:9999" // default fallback
+	}
+
+	client := &http.Client{}
+	req, _ := http.NewRequest("POST", authService+"/auth/validatePasswordToken", nil)
+
+	// Pass the headers (Authorization, cookies, etc)
+	req.Header = r.Header
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+
+	return resp.StatusCode == http.StatusOK
+}

@@ -44,7 +44,7 @@ func processAuditEvents() {
 func sendAuditEvent(event auditlogging.AuditEvent) error {
 	auditService := os.Getenv("AUDIT_SERVICE_URL")
 	if auditService == "" {
-		auditService = "http://localhost:8890/audit/log"
+		auditService = "http://audit-service-container:8890/audit/log"
 	}
 
 	action := detectAction(event.Path, event.StatusCode)
@@ -107,9 +107,10 @@ func detectAction(path string, statusCode int) string {
 		baseAction = "get_update_token"
 	case strings.Contains(path, "/auth/passwordtoken"):
 		baseAction = "recover_password_email_token_granted"
-	case strings.Contains(path, "/auth/verifypasstoken"):
-		baseAction = "verify_grant_password_recovery_token"
-
+	case strings.Contains(path, "/auth/validatePasswordToken"):
+		baseAction = "password_token_validate"
+	case strings.Contains(path, "/auth/password/reset"):
+		baseAction = "password_token_validate"
 	// ==== USER ROUTES ====
 	case strings.Contains(path, "/users/update"):
 		baseAction = "user_update"

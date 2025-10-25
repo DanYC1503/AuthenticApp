@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"main/config"
 	"main/middleware"
@@ -163,27 +166,53 @@ func GetPasswordToken(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-
-	token := repository.RequestPasswordAuthToken(w, r, user)
-
-	// Only send success response if no error was sent
-	if token != "" {
-		resp := map[string]string{"message": token}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(resp)
-	}
+	repository.RequestPasswordAuthToken(w, r, user)
 }
-func VerifyPasswordRecoveryToken(w http.ResponseWriter, r *http.Request) {
-	token := r.URL.Query().Get("token")
-	if token == "" {
-		http.Error(w, "Token missing", http.StatusBadRequest)
+func ResetPasswordVerification(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	passwordToken := r.Header.Get("X-Password-Token")
+	if passwordToken == "" {
+		http.Error(w, "Missing password token", http.StatusUnauthorized)
 		return
 	}
-	repository.VerifyRecoveryToken(w, token)
+	claims, ok := encryption.ValidateToken(passwordToken, "reset")
+	if !ok {
+		http.Error(w, "Invalid or expired password token", http.StatusUnauthorized)
+		return
+	}
+
+	status := fmt.Sprintf("Password token validated for user: %s", claims.Username)
+	resp := map[string]string{"tokenStatus": status}
+	json.NewEncoder(w).Encode(resp)
 
 }
+func ResetPassword(w http.ResponseWriter, r *http.Request) {
+	const maxRetries = 3
+	db := config.ConnectDB()
+	fmt.Println("Connected to Database")
+	defer db.Close()
+	body, _ := io.ReadAll(r.Body)
+	fmt.Println("Raw body:", string(body))
+	r.Body = io.NopCloser(bytes.NewBuffer(body))
+	var userInfo models.UserPasswordReset
+	if err := json.NewDecoder(r.Body).Decode(&userInfo); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Println("Email: " + userInfo.Email)
+	// Pass a function (closure) that receives *tx and calls your repository function
+	middleware.TransactionRetry(db, maxRetries, w, func(tx *sql.Tx) error {
+		return repository.ResetPassword(w, userInfo)
+	})
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Password changed successfully",
+	})
+
+}
 func SessionTokenVerification(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 

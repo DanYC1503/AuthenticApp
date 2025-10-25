@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-// responseRecorder lets us capture the response status code
+// responseRecorder lets to capture the response status code
 type responseRecorder struct {
 	http.ResponseWriter
 	statusCode int
@@ -53,6 +53,14 @@ func ReverseProxy(target string, prefix string) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
+		// --- Copy body for both proxy and audit logging ---
+		bodyBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("[Audit] Failed to read body: %v", err)
+			bodyBytes = []byte{}
+		}
+		r.Body.Close()
+		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		if !(r.Method == http.MethodGet || r.Method == http.MethodHead || path == "/api/csrf-token") {
 			if !middleware.ValidateCSRFRequest(r) {
 				http.Error(w, "Forbidden: invalid CSRF token", http.StatusForbidden)
@@ -63,7 +71,13 @@ func ReverseProxy(target string, prefix string) http.HandlerFunc {
 		for _, c := range r.Cookies() {
 			log.Printf("[Proxy] Cookie: %s=%s", c.Name, c.Value)
 		}
-
+		if strings.HasPrefix(path, "/auth/password/reset") {
+			log.Printf("[Proxy] Incoming request to %s | Body: %s", path, string(bodyBytes))
+			if !encryption.ValidatePasswordToken(r) {
+				http.Error(w, "Unauthorized: invalid password token", http.StatusUnauthorized)
+				return
+			}
+		}
 		// Protect /users/ routes
 		if strings.HasPrefix(path, "/users/") {
 			if !encryption.ValidateSessionToken(r) {
@@ -104,15 +118,7 @@ func ReverseProxy(target string, prefix string) http.HandlerFunc {
 			}
 		}
 
-		// --- Copy body for both proxy and audit logging ---
-		bodyBytes, err := io.ReadAll(r.Body)
-		if err != nil {
-			log.Printf("[Audit] Failed to read body: %v", err)
-			bodyBytes = []byte{}
-		}
-		r.Body.Close()
 		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-
 		rec := &responseRecorder{
 			ResponseWriter: w,
 			statusCode:     http.StatusOK,

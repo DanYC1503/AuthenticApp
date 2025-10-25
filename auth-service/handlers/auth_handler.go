@@ -49,7 +49,7 @@ func GetUpdateToken(w http.ResponseWriter, r *http.Request) {
 	controllers.GetUpdateToken(w, r)
 }
 func GetPasswordToken(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("Method not allowed"))
 		return
@@ -58,10 +58,13 @@ func GetPasswordToken(w http.ResponseWriter, r *http.Request) {
 }
 
 // -------------------TOKEN VERIFICATION
-func AutoVerifyRecoveryToken(w http.ResponseWriter, r *http.Request) {
-
-	// Reuse your existing verification logic
-	controllers.VerifyPasswordRecoveryToken(w, r)
+func ResetPasswordVerification(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
+	controllers.ResetPasswordVerification(w, r)
 }
 
 func TokenVerification(w http.ResponseWriter, r *http.Request) {
@@ -104,7 +107,14 @@ func LogoutSession(w http.ResponseWriter, r *http.Request) {
 	}
 	controllers.LogoutSession(w, r)
 }
-
+func ResetPassword(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
+	controllers.ResetPassword(w,r)
+}
 func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	log.Println("GoogleCallback hit")
 	log.Println("Cookies in request:")
@@ -138,7 +148,8 @@ type responseRecorder struct {
 func (r *responseRecorder) Header() http.Header {
 	return r.headers
 }
-//Write header for the required function, this case the audit that needs the headers reconstructed
+
+// Write header for the required function, this case the audit that needs the headers reconstructed
 func (r *responseRecorder) WriteHeader(statusCode int) {
 	for k, v := range r.headers {
 		r.ResponseWriter.Header()[k] = v

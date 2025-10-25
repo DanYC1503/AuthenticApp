@@ -64,7 +64,7 @@ export class AuthServiceService {
         error: (err) => {
           console.error('Error en registro:', err);
           Swal.fire({
-            title: '❌ Error',
+            title: 'Error',
             text: 'Ocurrió un error durante el registro. Intenta nuevamente.',
             icon: 'error',
             confirmButtonColor: '#dc2626'
@@ -78,6 +78,21 @@ export class AuthServiceService {
   requestDeleteToken(payload: any): Observable<any> {
     return this.http.post(`${this.baseUrl}deleteToken`, payload, { withCredentials: true });
   }
+  requestPasswordToken(payload: { email: string }): Observable<any> {
+    return this.http.post(`${this.baseUrl}password/token`, payload, { withCredentials: true });
+  }
 
+  resetPassword(payload: { email: string, new_password: string }, token: string): Observable<any> {
+    console.log(payload.email + " " + payload.new_password);
+    return this.http.post(
+      `${this.baseUrl}password/reset`,
+      payload,
+      { headers: { 'X-Password-Token': token }, withCredentials: true }
+    );
+  }
 
+}
+export interface PasswordResetPayload {
+  token: string;
+  password: string;
 }

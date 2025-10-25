@@ -48,3 +48,7 @@ type UserLoggedIn struct {
 type UserPasswordRetrieval struct {
 	Email string `json:"email"`
 }
+type UserPasswordReset struct {
+	Email        string `json:"email"`
+	New_Password string `json:"new_password"`
+}

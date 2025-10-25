@@ -21,12 +21,12 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/auth/validateToken", handlers.TokenVerification)
 	mux.HandleFunc("/auth/validateUpToken", handlers.UpTokenVerification)
 	mux.HandleFunc("/auth/validateDelToken", handlers.DelTokenVerification)
-	mux.HandleFunc("/auth/VerifyPassToken", handlers.AutoVerifyRecoveryToken)
-
-	mux.HandleFunc("/auth/passwordToken", handlers.GetPasswordToken)
+	mux.HandleFunc("/auth/validatePasswordToken", handlers.ResetPasswordVerification)
 
 	mux.HandleFunc("/auth/deleteToken", controllers.RequireValidToken(handlers.GetDeleteToken))
 	mux.HandleFunc("/auth/updateUserToken", controllers.RequireValidToken(handlers.GetUpdateToken))
 	mux.HandleFunc("/auth/logout", controllers.RequireValidToken(handlers.LogoutSession))
+	mux.HandleFunc("/auth/password/reset", handlers.ResetPassword)
+	mux.HandleFunc("/auth/password/token", handlers.GetPasswordToken)
 
 }

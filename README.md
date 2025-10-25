@@ -28,13 +28,13 @@ Un **sistema de autenticación basado en microservicios** con un frontend en **A
 
 ## 🧩 Servicios
 
-| Servicio          | Puerto | Descripción                                       |
-| ----------------- | ------ | ------------------------------------------------- |
-| **API Gateway**   | 8888   | Enruta solicitudes, maneja CORS y protección CSRF |
-| **Auth Service**  | 9999   | Autenticación JWT y gestión de usuarios           |
-| **User Service**  | 8889   | Operaciones sobre datos de usuario                |
-| **Audit Service** | 8890   | Registro de actividades                           |
-| **PostgreSQL**    | 5432   | Almacenamiento de datos                           |
+| Servicio          | Puerto | Descripción                                                          |
+| ----------------- | ------ | ---------------------------------------------------------------------|
+| **API Gateway**   | 8888   | Enruta solicitudes, maneja CORS y protección CSRF                    |
+| **Auth Service**  | 9999   | Autenticación JWT, gestión de usuarios y recuperacion de contraseña  |
+| **User Service**  | 8889   | Operaciones sobre datos de usuario                                   |
+| **Audit Service** | 8890   | Registro de actividades                                              |
+| **PostgreSQL**    | 5432   | Almacenamiento de datos                                              |
 
 ---
 

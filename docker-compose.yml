@@ -25,6 +25,9 @@ services:
       - app-network
 
   auth-system-db:
+    build:
+      context: ./sql
+      dockerfile: Dockerfile
     image: auth-system-database
     container_name: auth-system-db
     ports:
@@ -84,7 +87,17 @@ services:
       - auth-system-db
     networks:
       - app-network
-
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: angular-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - app-network
 volumes:
   auth_db_data:
 

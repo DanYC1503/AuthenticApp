@@ -22,6 +22,10 @@ export class RegistrarUsuarioComponent {
   constructor(private authService: AuthServiceService) {}
 
   onRegister() {
+     if (this.username === '' || this.email === '' || this.password === '') {
+      alert("Llene todos los datos porfavor");
+      return;
+    }
     const payload = {
       id_number: this.id_number,
       full_name: this.full_name,
@@ -32,6 +36,7 @@ export class RegistrarUsuarioComponent {
       address: this.address,
       username: this.username
     };
+
 
     this.authService.registerUser(payload);
   }

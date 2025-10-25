@@ -22,19 +22,31 @@ export class LoginComponentComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-  this.csrfService.loadCsrfToken().subscribe({
-    next: () => {
-      // Read token from cookie
-      const token = this.csrfService.getTokenFromCookie();
+    // 1️Clear previous CSRF cookie
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
+    });
 
-      // Optionally save in localStorage if you want
-      if (token) localStorage.setItem('XSRF-TOKEN', token);
-    },
-    error: (err) => {
-      console.error('Failed to load CSRF token', err);
-    }
-  });
-}
+    // 2️Clear localStorage
+    localStorage.removeItem('XSRF-TOKEN');
+    localStorage.removeItem('EMAIL');
+    localStorage.removeItem('SESSION_TOKEN');
+    localStorage.removeItem('USERNAME');
+    localStorage.removeItem('ISADMIN');
+
+    // Now load the new CSRF token
+    this.csrfService.loadCsrfToken().subscribe({
+      next: () => {
+        const token = this.csrfService.getTokenFromCookie();
+        if (token) localStorage.setItem('XSRF-TOKEN', token);
+      },
+      error: (err) => {
+        console.error('Failed to load CSRF token', err);
+      }
+    });
+  }
   onLogin() {
     const body = {
       username: this.usuario,
