@@ -58,7 +58,8 @@ Angular Frontend → API Gateway → Auth Service / User Service / Audit Service
 ### Producción
 
 ```bash
-docker-compose up -d 
+docker-compose up -d
+Entrar a: http://localhost:4200/login
 ```
 
 ---
